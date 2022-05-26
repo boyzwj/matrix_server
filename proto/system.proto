@@ -1,0 +1,8 @@
+syntax = "proto3";
+package system;
+
+import "common.proto";
+
+message Ping2S{
+    uint32 time = 1;
+} 
