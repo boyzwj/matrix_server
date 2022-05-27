@@ -19,7 +19,7 @@ config :logger, :console,
   metadata: [:module, :function, :line],
   level: :debug
 
-config :server, DB.Repo,
+config :matrix_server, DB.Repo,
   hostname: "{{db_host}}",
   port: "{{db_port}}",
   database: "{{db_name}}",
@@ -27,3 +27,7 @@ config :server, DB.Repo,
   password: "{{db_pass}}",
   ssl: false,
   show_sensitive_data_on_connection_error: true
+
+config :matrix_server, DB.Redis,
+  host: "172.31.118.1",
+  port: 6379

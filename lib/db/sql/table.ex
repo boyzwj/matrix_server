@@ -1,4 +1,4 @@
-defmodule DB.Table do
+defmodule DB.SQL.Table do
   defmacro __using__(_) do
     quote do
       use Ecto.Schema

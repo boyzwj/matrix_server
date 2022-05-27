@@ -16,12 +16,13 @@ defmodule Gateway.Tcplistener do
     exit_on_close: true
   ]
 
-  def start_link(module, init_arg, options \\ []) do
-    GenServer.start_link(module, init_arg, options)
+  def start_link(init_arg) do
+    GenServer.start_link(__MODULE__, init_arg)
   end
 
   def init(args) do
-    [port, mod] = args
+    [mod] = args
+    port = String.to_integer(System.get_env("PORT") || "4200")
     :erlang.send(self(), :listen)
     {:ok, %Tcplistener{port: port, tcp_opts: @tcp_opts, mod: mod}}
   end
@@ -45,7 +46,7 @@ defmodule Gateway.Tcplistener do
           end
 
         state = ~M{state |acceptor_pids,socket}
-        {:norely, state}
+        {:noreply, state}
     end
   end
 end

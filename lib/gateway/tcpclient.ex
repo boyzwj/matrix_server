@@ -1,13 +1,12 @@
 defmodule Gateway.Tcpclient do
   defstruct socket: nil,
             account: <<>>,
-            token: <<>>,
+            session_id: <<>>,
             recv_buffer: <<>>,
             last_recv_index: 0,
             send_buffer: [],
             send_buffers: [],
             send_ref: nil,
-            sender_pid: nil,
             player_pid: nil,
             last_heart: 0
 
@@ -16,29 +15,31 @@ defmodule Gateway.Tcpclient do
   alias Gateway.Tcpclient
   @pool_size 256
 
-  @proto_l
+  @proto_authorize 101
   @proto_message 104
   @proto_errorcode 105
   @proto_ping 106
   @proto_pong 107
-  @proto_reconnect 108
-  @proto_reconnect_sucess 109
-  @proto_reconnect_fail 110
 
   @second_interval 1000
 
-  @impl true
-  def init(socket) do
-    sender_pid = :erlang.spawn(fn -> tcp_sender(%{socket: socket}) end)
-    Process.monitor(sender_pid)
-    Process.send_after(self(), :loop, @second_interval)
-    Process.put(:sid, self())
-    token = Ecto.UUID.generate() |> Util.md5() |> Base.encode16()
-    {:ok, ~M{%Tcpclient socket, token,sender_pid}}
-  end
-
+  # =============   API   ===============
   def get_buffer_info(pid) do
     GenServer.call(pid, :get_buffer_info)
+  end
+
+  def send_buff(pid, data) do
+    GenServer.cast(pid, {:send_buff, data})
+  end
+
+  # ==============  CALLBACK ================
+
+  @impl true
+  def init(socket) do
+    Process.send_after(self(), :loop, @second_interval)
+    Process.put(:sid, self())
+    session_id = Ecto.UUID.generate() |> Util.md5() |> Base.encode16()
+    {:ok, ~M{%Tcpclient socket, session_id}}
   end
 
   def handle_call(:get_buffer_info, _from, state) do
@@ -75,19 +76,16 @@ defmodule Gateway.Tcpclient do
 
   def handle_info({:tcp_closed, socket}, ~M{socket} = state) do
     Logger.debug("tcp_closed")
-    send(state.sender_pid, :stop)
     {:stop, :normal, state}
   end
 
   def handle_info({:tcp_error, socket}, ~M{socket} = state) do
     Logger.debug("tcp_error")
-    send(state.sender_pid, :stop)
     {:stop, :normal, state}
   end
 
   def handle_info({:tcp_error, socket, reason}, ~M{socket} = state) do
     Logger.error("tcp_error reason: #{inspect(reason)}")
-    send(state.sender_pid, :stop)
     {:stop, :normal, state}
   end
 
@@ -115,10 +113,6 @@ defmodule Gateway.Tcpclient do
     {:noreply, do_send(state)}
   end
 
-  def send_buff(pid, data) do
-    GenServer.cast(pid, {:send_buff, data})
-  end
-
   @send_buffers_limit 256
   def handle_cast({:send_buff, data}, ~M{send_buffer, send_ref,send_buffers} = state) do
     send_ref && Process.cancel_timer(send_ref)
@@ -135,49 +129,45 @@ defmodule Gateway.Tcpclient do
         ~M{state| send_buffer,send_ref,send_buffers}
       end
 
-    {:noreply, state}
+    {:noreply, newstate}
   end
 
-  def pkg_buffer_index(data, send_buffers) do
-    first = send_buffers |> List.first()
-    current_buffer_index = get_buffer_index(first) + 1
-    len = IO.iodata_length(data) + 5
-    [<<len::16-little, @proto_message, current_buffer_index::32-little>> | data]
+  @impl true
+  def terminate(_reason, ~M{session_id,player_pid,last_recv_index,send_buffers}) do
+    player_pid != nil and send(player_pid, :tcp_closed)
+    :ok
   end
 
-  defp decode(
-         state,
-         <<len::16-little, data::binary-size(len), left::binary>>
-       ) do
-    case data do
-      <<@proto_message, recv_index::32-little, body::binary>> ->
-        nil
-    end
-
-    ~M{state|last_recv_index: recv_index}
-    |> handle_proto(data)
-    |> decode(left)
+  defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
+    state |> decode_body(data) |> decode(left)
   end
 
-  defp decode(
-         ~M{player_pid} = state,
-         <<len::16-little, @proto_ping, client_time::float, left::binary>>
-       ) do
-    state
-    |> handle_ping(data, client_time)
-    |> decode(left)
+  defp decode(state, recv_buffer), do: ~M{state | recv_buffer}
+
+  defp decode_body(state, <<@proto_message, recv_index::32-little, body::binary>>) do
+    ~M{state|last_recv_index: recv_index} |> handle_proto(body)
   end
 
-  defp decode(state, recv_buffer) do
-    ~M{state | recv_buffer}
-    |> decode(left)
+  defp decode_body(state, <<@proto_ping, client_time::float>>) do
+    state |> handle_ping(client_time)
+  end
+
+  defp decode_body(state, <<@proto_authorize, token::binary>>) do
+    state |> handle_authorize(token)
   end
 
   defp do_send(%{send_buffer: []} = state), do: state
 
-  defp do_send(~M{send_buffer, sender_pid} = state) do
+  defp do_send(~M{send_buffer,socket} = state) do
     send_buffer = :lists.reverse(send_buffer)
-    send(sender_pid, {:send, send_buffer})
+
+    try do
+      :erlang.port_command(socket, send_buffer, [:nosuspend])
+    rescue
+      ArgumentError ->
+        Logger.debug("send fail: #{inspect(socket)},error: #{inspect(send_buffer)}")
+    end
+
     ~M{state| send_buffer: [] ,send_ref: nil}
   end
 
@@ -185,12 +175,15 @@ defmodule Gateway.Tcpclient do
     state
   end
 
-  defp handle_ping(%Tcpclient{player_pid: player_pid} = state, client_time) do
+  defp handle_ping(
+         %Tcpclient{player_pid: player_pid, send_buffer: send_buffer} = state,
+         client_time
+       ) do
     last_heart = Util.longunixtime() / 1000
     player_pid && send(player_pid, :ping)
     data = <<17::16-little, @proto_pong, last_heart::float, client_time::float>>
-    send(sender_pid, {:send, data})
-    ~M{state |last_heart}
+    send_buffer = [data | send_buffer]
+    ~M{state |last_heart,send_buffer} |> do_send
   end
 
   defp handle_proto(%Tcpclient{player_pid: nil} = state, data) do
@@ -203,84 +196,19 @@ defmodule Gateway.Tcpclient do
     state
   end
 
-  # defp handle(
-  #        ~M{player_pid} = state,
-  #        <<@proto_message, id::16-little, _::32-little, data::binary>>
-  #      ) do
-  #   Role.RoleSvr.client_msg(player_pid, <<id::16-little, data::binary>>)
-  #   state
-  # end
-
-  # defp handle(~M{sender_pid,player_pid} = state, <<@proto_ping, client_time::float>>) do
-  #   last_heart = Util.longunixtime() / 1000
-  #   player_pid && send(player_pid, :ping)
-  #   data = <<17::16-little, @proto_ping, last_heart::float, client_time::float>>
-  #   send(sender_pid, {:send, data})
-  #   ~M{state |last_heart}
-  # end
-
-  # defp handle(state, <<@proto_errorcode, _::binary>>) do
-  #   state
-  # end
-
-  # defp handle(~M{sender_pid} = state, <<@proto_reconnect, last_index::32-little, token::binary>>) do
-  #   with [{_, uuid, last_tcp_pid}] <- :ets.lookup(:tokens, token),
-  #        {last_recv_index, send_buffers} <- get_index_and_buffers(state, last_tcp_pid, token),
-  #        {:ok, unreached_buffers} <- chk_unreached_buffers(send_buffers, last_index),
-  #        player_pid when is_pid(player_pid) <- PP.System.player_pid(uuid) do
-  #     Role.RoleSvr.reconnect(player_pid, self(), token)
-  #     data = <<5::16-little, @proto_reconnect_sucess, last_recv_index::32-little>>
-  #     send(sender_pid, {:send, data})
-  #     Logger.debug("reconnect sucess: #{inspect(~M{token,last_index})},data: #{inspect(data)}")
-
-  #     ~M{state|player_pid,token,send_buffer: unreached_buffers,send_buffers: [],last_recv_index: 0}
-  #     |> do_send()
-  #   else
-  #     error ->
-  #       Logger.debug("reconnect fail: #{inspect(~M{token,last_index})},error: #{inspect(error)}")
-
-  #       data = <<1::16-little, @proto_reconnect_fail>>
-  #       send(sender_pid, {:send, data})
-  #       state
-  #   end
-  # end
-
-  defp get_index_and_buffers(state, last_tcp_pid, token) do
-    if is_pid(last_tcp_pid) and last_tcp_pid != self() and Process.alive?(last_tcp_pid) do
-      info = get_buffer_info(last_tcp_pid)
-      send(last_tcp_pid, {:down, :replace})
-      info
-    else
-      if state.send_buffers != [] or state.last_recv_index != 0 do
-        info = {state.last_recv_index, state.send_buffers}
-        info
-      else
-        case :ets.lookup(:buffers, token) do
-          [{_, last_recv_index, send_buffers}] ->
-            info = {last_recv_index, send_buffers}
-            info
-
-          _ ->
-            {0, []}
-        end
-      end
-    end
+  defp handle_authorize(%Tcpclient{player_pid: nil} = state, token) do
+    state
   end
 
-  defp chk_unreached_buffers(send_buffers, last_index) do
-    if last_index == 0 or
-         Enum.any?(send_buffers, fn data ->
-           index = get_buffer_index(data)
-           index == last_index
-         end) do
-      {:ok,
-       Enum.filter(send_buffers, fn data ->
-         index = get_buffer_index(data)
-         index > last_index
-       end)}
-    else
-      {:error, :overload_send_buffers_limit}
-    end
+  defp handle_authorize(%Tcpclient{player_pid: player_pid} = state, token) do
+    state
+  end
+
+  defp pkg_buffer_index(data, send_buffers) do
+    first = send_buffers |> List.first()
+    current_buffer_index = get_buffer_index(first) + 1
+    len = IO.iodata_length(data) + 5
+    [<<len::16-little, @proto_message, current_buffer_index::32-little>> | data]
   end
 
   def get_buffer_index(nil) do
@@ -288,39 +216,7 @@ defmodule Gateway.Tcpclient do
   end
 
   def get_buffer_index(data) do
-    [<<_::16-little, _, _::16-little, index::32-little>> | _d] = data
+    [<<_len::16-little, _proto_type, index::32-little>> | _d] = data
     index
-  end
-
-  defp tcp_sender(~M{socket} = state) do
-    receive do
-      {:send, iodata} ->
-        try do
-          :erlang.port_command(socket, iodata)
-        rescue
-          ArgumentError ->
-            Logger.debug("send fail: #{inspect(socket)},error: #{inspect(iodata)}")
-        end
-
-        state |> tcp_sender()
-
-      {:change_socket, newsocket} ->
-        ~M{state| socket: newsocket}
-        |> tcp_sender()
-
-      :stop ->
-        :ok
-
-      _ ->
-        state |> tcp_sender()
-    end
-  end
-
-  @impl true
-  def terminate(_reason, ~M{token,player_pid,sender_pid,last_recv_index,send_buffers}) do
-    send(sender_pid, :stop)
-    player_pid != nil and send(player_pid, :tcp_closed)
-    :ets.insert(:buffers, {token, last_recv_index, send_buffers})
-    :ok
   end
 end

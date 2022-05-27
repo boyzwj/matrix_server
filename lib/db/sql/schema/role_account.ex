@@ -1,5 +1,5 @@
 defmodule DB.Role.Account do
-  use DB.Table
+  use DB.SQL.Table
 
   @primary_key {:id, :id, autogenerate: true}
   schema "role_account" do

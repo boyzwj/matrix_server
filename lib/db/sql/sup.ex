@@ -1,4 +1,4 @@
-defmodule DB.Sup do
+defmodule DB.SQL.Sup do
   use DynamicSupervisor
 
   def start_link(init_arg) do
