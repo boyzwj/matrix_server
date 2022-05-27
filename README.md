@@ -1,6 +1,6 @@
-# Server
+# MatrixServer
 
-**TODO: Add description**
+**高并发高可用的游戏服务器框架*
 
 ## Installation
 
