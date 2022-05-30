@@ -7,6 +7,15 @@ defmodule DB.Redis do
   @name __MODULE__
 
   ## =========== API ============
+
+  def flushdb() do
+    ["flushdb"] |> cmd
+  end
+
+  def flushall() do
+    ["flushall"] |> cmd
+  end
+
   def cmd(cmd) do
     GenServer.call(@name, {:cmd, cmd})
   end
@@ -17,6 +26,26 @@ defmodule DB.Redis do
 
   def set(k, v) do
     ["SET", k, v] |> cmd
+  end
+
+  def hget(k, field) do
+    ["HGET", k, field] |> cmd
+  end
+
+  def hset(k, field, value) do
+    ["HSET", k, field, value] |> cmd
+  end
+
+  def hmget(k, fields) do
+    ["HGET", k | fields] |> cmd
+  end
+
+  def hmset(k, fvs) do
+    fvs |> Enum.reduce(["MSET", k], fn {k, v}, acc -> acc ++ [k, v] end) |> cmd
+  end
+
+  def hgetall(k) do
+    ["HGETALL", k] |> cmd
   end
 
   def mset(kvs) do
@@ -47,9 +76,14 @@ defmodule DB.Redis do
   @impl true
   def init(_args) do
     opts = Application.get_env(:matrix_server, __MODULE__)
-    {:ok, conn} = Redix.start_link(opts)
-    # Process.send_after(self(), :flush, @flush_interval)
-    {:ok, %DB.Redis{conn: conn}}
+
+    with {:ok, conn} <- Redix.start_link(opts),
+         {:ok, "PONG"} <- Redix.command(conn, ["ping"]) do
+      {:ok, %DB.Redis{conn: conn}}
+    else
+      {:error, reason} ->
+        Logger.error("redix connect error, #{inspect(reason)} ")
+    end
   end
 
   @impl true
@@ -72,12 +106,12 @@ defmodule DB.Redis do
 
   @impl true
   def handle_call({:pipeline, cmds}, _from, ~M{%DB.Redis conn} = state) do
-    reply = Redix.pipeline(conn, cmds)
+    reply = Redix.pipeline!(conn, cmds)
     {:reply, reply, state}
   end
 
   def handle_call({:cmd, cmd}, _from, ~M{%DB.Redis conn} = state) do
-    reply = Redix.command(conn, cmd)
+    reply = Redix.command!(conn, cmd)
     {:reply, reply, state}
   end
 
@@ -86,17 +120,9 @@ defmodule DB.Redis do
     {:reply, {:error, :unhandle_msg}, state}
   end
 
-  # defp flush(%DB.Redis{cmd_buffers: []} = state) do
-  #   {{:ok, 0}, state}
-  # end
-
-  # defp flush(~M{%DB.Redis conn,cmd_buffers} = state) do
-  #   case Redix.pipeline(conn, cmd_buffers) do
-  #     {:ok, result} ->
-  #       {{:ok, result}, ~M{state | cmd_buffers: []}}
-
-  #     {:error, error} ->
-  #       {{:error, error}, state}
-  #   end
-  # end
+  @impl true
+  def terminate(reason, _state) do
+    Logger.warning("redis server is down, reason: #{inspect(reason)}")
+    :ok
+  end
 end

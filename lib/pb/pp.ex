@@ -5,9 +5,15 @@ defmodule PB.PP do
   proto_ids = PB.PBID.proto_ids()
 
   pkgs =
-    for %{id: id, proto: proto} <- proto_ids, into: MapSet.new() do
+    for %{id: _id, proto: proto} <- proto_ids, m = Module.concat([proto]), into: MapSet.new() do
       [pkg, _method] = String.split(proto, ".", parts: 2)
-      Module.concat(["Elixir", "Role", "Mod", pkg])
+      mod = Module.concat(["Elixir", "Role", "Mod", pkg])
+
+      def mod(unquote(m)) do
+        unquote(mod)
+      end
+
+      mod
     end
     |> Enum.to_list()
 
@@ -47,21 +53,6 @@ defmodule PB.PP do
   def decode!(<<proto_id::16-little, data::binary>>) do
     [m, _] = proto_module(proto_id)
     m.decode!(data)
-  end
-
-  def handle(state, <<id::16-little, data::binary>>) do
-    with [m, handler] <- proto_module(id) do
-      m.decode!(data)
-      |> handler.h(state, _)
-    else
-      :error ->
-        Logger.debug("undefined proto:#{id} with binary: #{inspect(data)}")
-        state
-    end
-  end
-
-  def handle(state, _) do
-    state
   end
 
   def encode(%{__struct__: m} = data) do

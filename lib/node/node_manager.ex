@@ -7,7 +7,7 @@ defmodule NodeManager do
   @loop_interval 1000
 
   def start_link(init_arg) do
-    GenServer.start_link(__MODULE__, init_arg)
+    GenServer.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
   @impl true

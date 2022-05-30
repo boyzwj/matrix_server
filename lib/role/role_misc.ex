@@ -1,4 +1,8 @@
 defmodule Role.Misc do
+  def role_db_key(role_id) do
+    "role:#{role_id}"
+  end
+
   def role_pid_name(role_id) do
     "R_#{role_id}"
     |> String.to_atom()

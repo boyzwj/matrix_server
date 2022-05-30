@@ -4,10 +4,24 @@ defmodule Role.RoleSvr do
   @save_interval 30
   @loop_interval 1000
 
+  ## =====API====
   def start(args, options \\ []) do
     GenServer.start(__MODULE__, args, options)
   end
 
+  def client_msg(player_pid, msg) do
+    GenServer.cast(player_pid, {:client_msg, msg})
+  end
+
+  def offline(player_pid) do
+    GenServer.cast(player_pid, :offline)
+  end
+
+  def role_id() do
+    Process.get(:role_id)
+  end
+
+  ## ===CALLBACK====
   @impl true
   def init(~M{role_id,sid} = args) do
     Process.put(:sid, sid)
@@ -18,6 +32,7 @@ defmodule Role.RoleSvr do
     {:ok, args}
   end
 
+  @impl true
   def handle_info(:init, state) do
     hook(:init)
     {:noreply, state}
@@ -29,7 +44,14 @@ defmodule Role.RoleSvr do
   end
 
   @impl true
-  def terminate(reason, _state) do
+  def handle_cast({:client_msg, msg}, state) do
+    mod = msg |> Map.get(:__struct__) |> PB.PP.mod()
+    mod.h(msg)
+    {:noreply, state}
+  end
+
+  @impl true
+  def terminate(_reason, _state) do
     hook(:terminate)
     hook(:save)
     :ok

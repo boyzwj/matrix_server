@@ -23,11 +23,12 @@ config :matrix_server, DB.Repo,
   database: "matrix",
   username: "root",
   password: "123456",
-  hostname: "172.31.112.1",
+  hostname: "192.168.11.15",
   port: 3306,
   ssl: false,
   show_sensitive_data_on_connection_error: true
 
 config :matrix_server, DB.Redis,
-  host: "172.31.118.1",
-  port: 6379
+  host: "192.168.11.15",
+  port: 6379,
+  password: "123456"

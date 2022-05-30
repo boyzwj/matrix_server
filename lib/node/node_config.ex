@@ -7,7 +7,10 @@ defmodule NodeConfig do
   @node_db 3
 
   def services(@node_all_in_one) do
-    [{Gateway.Tcplistener, [Gateway.Tcpclient]}, {DB.Redis, []}]
+    [
+      {Gateway.Tcplistener, [Gateway.Tcpclient]},
+      {DB.Redis, []}
+    ]
   end
 
   def services(@node_gate_way) do

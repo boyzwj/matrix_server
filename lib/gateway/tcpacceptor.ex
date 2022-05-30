@@ -8,7 +8,7 @@ defmodule Gateway.Tcpaccepter do
            ] ++ [{:raw, 6, 8, <<30::native-32>>}]
 
   def start(socket, mod) do
-    :erlang.spawn(fn -> tcp_accepter(socket, mod) end)
+    :erlang.spawn_link(fn -> tcp_accepter(socket, mod) end)
   end
 
   def tcp_accepter(socket, mod) do

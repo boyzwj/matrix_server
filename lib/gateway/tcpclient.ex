@@ -42,19 +42,12 @@ defmodule Gateway.Tcpclient do
     {:ok, ~M{%Tcpclient socket, session_id}}
   end
 
+  @impl true
   def handle_call(:get_buffer_info, _from, state) do
     {:reply, {state.last_recv_index, state.send_buffers}, state}
   end
 
-  def handle_info(:stop, ~M{player_pid} = state) do
-    if player_pid do
-      Role.RoleSvr.stop(player_pid, :normal)
-    end
-
-    Logger.debug("tcpclient is stoped")
-    {:stop, :normal, state}
-  end
-
+  @impl true
   def handle_info({:down, reason}, state) do
     Logger.debug("mod_player is down for reason: #{inspect(reason)}")
     {:stop, :normal, state}
@@ -192,7 +185,13 @@ defmodule Gateway.Tcpclient do
   end
 
   defp handle_proto(%Tcpclient{player_pid: player_pid} = state, data) do
-    Role.RoleSvr.client_msg(player_pid, data)
+    with {{:ok, msg}, handler} <- PB.PP.decode(data) do
+      Role.RoleSvr.client_msg(player_pid, msg)
+    else
+      _ ->
+        Logger.warning("receive undefined proto")
+    end
+
     state
   end
 

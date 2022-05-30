@@ -17,7 +17,7 @@ defmodule Gateway.Tcplistener do
   ]
 
   def start_link(init_arg) do
-    GenServer.start_link(__MODULE__, init_arg)
+    GenServer.start_link(__MODULE__, init_arg, name: __MODULE__)
   end
 
   def init(args) do
