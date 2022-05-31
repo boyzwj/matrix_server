@@ -28,3 +28,5 @@ server-*.tar
 /logs/
 
 .elixir_ls
+
+.mnesia
