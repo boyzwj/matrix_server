@@ -1,31 +1,42 @@
 defmodule NodeConfig do
   use Common
 
-  @node_all_in_one 0
-  @node_gate_way 1
-  @node_lobby 2
-  @node_db 3
+  def services() do
+    "#{node()}"
+    |> String.split("@")
+    |> List.first()
+    |> String.split("_")
+    |> List.first()
+    |> services()
+  end
 
-  def services(@node_all_in_one) do
+  def services("beacon") do
     [
-      {Gateway.Tcplistener, [Gateway.Tcpclient]},
-      {DB.Redis, []}
+      {BeaconServer, name: BeaconServer},
+      {DBContact.Interface, name: DBContact.Interface},
+      {DBContact.NodeManager, name: DBContact.NodeManager}
     ]
   end
 
-  def services(@node_gate_way) do
-    [{Gateway.Tcplistener, [Gateway.Tcpclient]}]
+  def services("db") do
+    [
+      {DBService.InterfaceSup, name: DBService.InterfaceSup},
+      {DBService.WorkerSup, name: DBService.WorkerSup}
+    ]
   end
 
-  def services(@node_lobby) do
+  def services("gateway") do
+    [
+      {Gateway.Tcplistener, [Gateway.Tcpclient]}
+    ]
+  end
+
+  def services("loby") do
     []
   end
 
-  def services(@node_db) do
-    [{DB.Redis, []}]
-  end
-
-  def services(_node_type) do
+  def services(node_type) do
+    Logger.debug("unknow node type #{inspect(node_type)}")
     []
   end
 end

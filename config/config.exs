@@ -13,3 +13,6 @@ config :matrix_server, DB.LocalCache,
 config :matrix_server,
   mix_env: Mix.env(),
   ecto_repos: [DB.Repo]
+
+config :mnesia,
+  dir: '.mnesia/#{Mix.env()}/#{node()}'

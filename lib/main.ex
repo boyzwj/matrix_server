@@ -7,9 +7,7 @@ defmodule Main do
   require Logger
 
   def start(_type, _args) do
-    node_type = String.to_integer(System.get_env("NODE_TYPE", "0"))
-
-    ([{NodeManager, [node_type]}] ++ NodeConfig.services(node_type))
+    NodeConfig.services()
     |> Supervisor.start_link(strategy: :one_for_one, name: Matrix.Supervisor)
   end
 

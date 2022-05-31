@@ -22,6 +22,7 @@ defmodule Gateway.Tcpclient do
   @proto_pong 107
 
   @second_interval 1000
+  @send_buffers_limit 256
 
   # =============   API   ===============
   def get_buffer_info(pid) do
@@ -106,7 +107,7 @@ defmodule Gateway.Tcpclient do
     {:noreply, do_send(state)}
   end
 
-  @send_buffers_limit 256
+  @impl true
   def handle_cast({:send_buff, data}, ~M{send_buffer, send_ref,send_buffers} = state) do
     send_ref && Process.cancel_timer(send_ref)
     data = pkg_buffer_index(data, send_buffers)

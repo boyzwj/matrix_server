@@ -28,7 +28,17 @@ config :matrix_server, DB.Repo,
   ssl: false,
   show_sensitive_data_on_connection_error: true
 
-config :matrix_server, DB.Redis,
-  host: "192.168.11.15",
-  port: 6379,
-  password: "123456"
+config :libcluster,
+  topologies: [
+    matrix: [
+      strategy: Cluster.Strategy.Epmd,
+      config: [
+        hosts: [
+          :"gate_1@127.0.01",
+          :"lobby_1@127.0.0.1",
+          :"db_1@127.0.0.1",
+          :"db_2@127.0.0.1"
+        ]
+      ]
+    ]
+  ]

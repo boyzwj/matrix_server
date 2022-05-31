@@ -27,7 +27,3 @@ config :matrix_server, DB.Repo,
   port: 3306,
   ssl: false,
   show_sensitive_data_on_connection_error: true
-
-config :matrix_server, DB.Redis,
-  host: "172.31.118.1",
-  port: 6379
