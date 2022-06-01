@@ -18,12 +18,3 @@ config :logger, :console,
   format: "### [$date $time] $metadata[$level] \n  * $levelpad$message\n\n",
   metadata: [:module, :function, :line],
   level: :debug
-
-config :matrix_server, DB.Repo,
-  database: "matrix",
-  username: "root",
-  password: "123456",
-  hostname: "localhost",
-  port: 3306,
-  ssl: false,
-  show_sensitive_data_on_connection_error: true

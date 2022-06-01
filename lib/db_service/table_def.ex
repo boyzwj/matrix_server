@@ -15,7 +15,16 @@ defmodule User.Character do
 end
 
 defmodule DBInit.TableDef do
-  def tables() do
+  def stores() do
+    PB.PP.modules()
+  end
+
+  def services do
     [User.Account, User.Character]
+  end
+
+  def tables() do
+    (stores() |> Enum.map(&{&1, :leveldb_copies})) ++
+      (services() |> Enum.map(&{&1, :ram_copies}))
   end
 end

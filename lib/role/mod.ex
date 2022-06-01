@@ -19,7 +19,7 @@ defmodule Role.Mod do
 
       defp save(nil), do: :ok
 
-      defp save(data), do: DB.save(data)
+      defp save(data), do: :ok
 
       def get_data() do
         Process.get({__MODULE__, :data})

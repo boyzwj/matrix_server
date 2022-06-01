@@ -1,4 +1,7 @@
 defmodule Role.Mod.System do
-  defstruct last_ping: 0
   use Role.Mod
+
+  use Memento.Table,
+    attributes: [:id, :last_ping, :update_at],
+    type: :set
 end
