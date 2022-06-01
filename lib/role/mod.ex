@@ -1,6 +1,9 @@
 defmodule Role.Mod do
-  defmacro __using__(_) do
+  defmacro __using__(opts) do
+    opts = Macro.expand(opts, __CALLER__)
+
     quote do
+      use Memento.Table, unquote(opts)
       use Common
 
       def init() do
