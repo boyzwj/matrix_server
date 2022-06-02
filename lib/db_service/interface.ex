@@ -1,7 +1,6 @@
 defmodule DBService.Interface do
   use GenServer
-
-  require Logger
+  use Common
 
   @beacon :"beacon_1@127.0.0.1"
   @resource :db_service
@@ -10,13 +9,15 @@ defmodule DBService.Interface do
   # 重试间隔：s
   @retry_rate 5
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, [], opts)
+  def start_link(args \\ []) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   @impl true
-  def init(_init_arg) do
-    {:ok, %{db_contact: nil, server_state: :waiting_requirements}, 0}
+  def init(args) do
+    block_id = Keyword.get(args, :block_id, 1)
+    Logger.debug("interface start ,block_id #{block_id}")
+    {:ok, %{db_contact: nil, server_state: :waiting_requirements, block_id: block_id}, 0}
   end
 
   @impl true
@@ -54,7 +55,7 @@ defmodule DBService.Interface do
   end
 
   @impl true
-  def handle_info(:get_requirements, state) do
+  def handle_info(:get_requirements, ~M{block_id} = state) do
     offer =
       GenServer.call(
         {BeaconServer, @beacon},
@@ -72,6 +73,11 @@ defmodule DBService.Interface do
             {DBContact.NodeManager, db_contact.node},
             {:register, node()}
           )
+
+        Horde.DynamicSupervisor.start_child(
+          DBA.Sup,
+          {DBA, block_id: block_id, worker_num: 10}
+        )
 
         Logger.debug("Requirements accuired, server ready.")
         {:noreply, %{state | db_contact: db_contact.node, server_state: :ready}}

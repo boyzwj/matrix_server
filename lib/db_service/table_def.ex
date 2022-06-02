@@ -24,7 +24,8 @@ defmodule DBInit.TableDef do
   end
 
   def tables() do
-    (stores() |> Enum.map(&{&1, :leveldb_copies})) ++
+    # (stores() |> Enum.map(&{&1, :rocksdb_copies})) ++
+    (stores() |> Enum.map(&{&1, :disc_copies})) ++
       (services() |> Enum.map(&{&1, :ram_copies}))
   end
 end

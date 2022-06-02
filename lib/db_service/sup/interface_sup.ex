@@ -1,15 +1,15 @@
 defmodule DBService.InterfaceSup do
   use Supervisor
 
-  def start_link(opts \\ []) do
-    Supervisor.start_link(__MODULE__, [], opts)
+  def start_link(args \\ []) do
+    Supervisor.start_link(__MODULE__, args, name: __MODULE__)
   end
 
-  def init(_init_arg) do
-    children = [
-      {DBService.Interface, name: DBService.Interface}
+  def init(args) do
+    args = [
+      {DBService.Interface, args}
     ]
 
-    Supervisor.init(children, strategy: :one_for_one)
+    Supervisor.init(args, strategy: :one_for_one)
   end
 end

@@ -18,3 +18,6 @@ config :logger, :console,
   format: "### [$date $time] $metadata[$level] \n  * $levelpad$message\n\n",
   metadata: [:module, :function, :line],
   level: :debug
+
+config :matrix_server,
+  db_block_num: 2

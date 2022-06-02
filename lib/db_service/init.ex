@@ -20,13 +20,13 @@ defmodule DBInit do
     Memento.stop()
     Memento.Schema.create([node()])
     Memento.start()
-    :mnesia_eleveldb.register()
+    :mnesia_rocksdb.register()
     create_tables()
   end
 
   def copy_database(store_list) do
     Memento.start()
-    :mnesia_eleveldb.register()
+    :mnesia_rocksdb.register()
     {:ok, _} = Memento.add_nodes(store_list)
     Table.set_storage_type(:schema, node(), :disc_copies)
     copy_tables()
@@ -46,7 +46,10 @@ defmodule DBInit do
         {:error, reason} ->
           Logger.error("Table init error #{inspect(reason)}")
       end
+
+      tab
     end
+    |> Table.wait()
   end
 
   defp copy_tables() do
@@ -67,7 +70,10 @@ defmodule DBInit do
         {:error, reason} ->
           Logger.error("Table init error #{inspect(reason)}")
       end
+
+      tab
     end
+    |> Table.wait()
   end
 
   defp check_update_table(tab) do

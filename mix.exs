@@ -27,12 +27,14 @@ defmodule Server.MixProject do
       {:pipe_to, "~> 0.2.1"},
       {:sorted_set_nif, "~> 1.2.0"},
       {:logger_file_backend, "~> 0.0.13"},
+      {:worker_pool, "~> 6.0"},
       {:protox, "~> 1.6"},
       {:horde, "~> 0.8.7"},
       {:observer_cli, "~> 1.7"},
       {:memento, "~> 0.3.2"},
-      {:mnesia_eleveldb, git: "https://github.com/klarna/mnesia_eleveldb", tag: "1.1.1"}
-
+      # {:mnesia_eleveldb, git: "https://github.com/klarna/mnesia_eleveldb", tag: "1.1.1"},
+      {:mnesia_rocksdb, git: "https://github.com/aeternity/mnesia_rocksdb.git", tag: "master"},
+      {:benchee, "~> 1.1", only: :dev}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

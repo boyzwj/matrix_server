@@ -14,6 +14,14 @@ defmodule Util do
     :crypto.hash(:md5, value)
   end
 
+  def enc_rc4(data, key) do
+    :crypto.crypto_one_time(:rc4, key, data, true)
+  end
+
+  def dec_rc4(data, key) do
+    :crypto.crypto_one_time(:rc4, key, data, false)
+  end
+
   def rand(min, max) when max > min do
     m = min - 1
     :rand.uniform(max - m) + m

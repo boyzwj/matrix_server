@@ -6,12 +6,13 @@ defmodule DBContact.Interface do
   @resource :db_contact
   @requirement []
 
-  def start_link(opts \\ []) do
-    GenServer.start_link(__MODULE__, [], opts)
+  def start_link(args \\ []) do
+    GenServer.start_link(__MODULE__, args, name: __MODULE__)
   end
 
   @impl true
-  def init(_init_arg) do
+  def init(args) do
+    Logger.debug("init args : #{inspect(args)}")
     {:ok, %{server_state: :waiting_node}, 0}
   end
 
