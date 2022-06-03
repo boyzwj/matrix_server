@@ -5,7 +5,7 @@ defmodule DBService.Interface do
   @beacon :"beacon_1@127.0.0.1"
   @resource :db_service
   @requirement [:db_contact]
-
+  @db_worker_num Application.get_env(:matrix_server, :db_worker_num)
   # 重试间隔：s
   @retry_rate 5
 
@@ -74,10 +74,12 @@ defmodule DBService.Interface do
             {:register, node()}
           )
 
-        Horde.DynamicSupervisor.start_child(
-          DBA.Sup,
-          {DBA, block_id: block_id, worker_num: 10}
-        )
+        for worker_id <- 1..@db_worker_num do
+          Horde.DynamicSupervisor.start_child(
+            DBA.Sup,
+            {DBA, block_id: block_id, worker_id: worker_id}
+          )
+        end
 
         Logger.debug("Requirements accuired, server ready.")
         {:noreply, %{state | db_contact: db_contact.node, server_state: :ready}}

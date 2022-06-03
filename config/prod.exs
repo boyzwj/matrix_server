@@ -20,4 +20,5 @@ config :logger, :console,
   level: :debug
 
 config :matrix_server,
-  db_block_num: 2
+  db_block_num: 2,
+  db_worker_num: 16
