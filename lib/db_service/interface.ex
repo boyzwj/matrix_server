@@ -50,41 +50,4 @@ defmodule DBService.Interface do
         {:noreply, state}
     end
   end
-
-  # @impl true
-  # def handle_info(:get_requirements, ~M{block_id} = state) do
-  #   offer =
-  #     GenServer.call(
-  #       {BeaconServer, @beacon},
-  #       {:get_requirements, node()}
-  #     )
-
-  #   IO.inspect(offer)
-
-  #   case offer do
-  #     {:ok, [db_contact | _]} ->
-  #       DBInit.initialize(db_contact.node)
-
-  #       :ok =
-  #         GenServer.call(
-  #           {DBContact.NodeManager, db_contact.node},
-  #           {:register, node()}
-  #         )
-
-  #       for worker_id <- 1..@db_worker_num do
-  #         Horde.DynamicSupervisor.start_child(
-  #           DBA.Sup,
-  #           {DBA, block_id: block_id, worker_id: worker_id}
-  #         )
-  #       end
-
-  #       Logger.debug("Requirements accuired, server ready.")
-  #       {:noreply, %{state | db_contact: db_contact.node, server_state: :ready}}
-
-  #     nil ->
-  #       Logger.debug("Not meeting requirements, retrying in #{@retry_rate}s.")
-  #       :timer.send_after(@retry_rate * 1000, :get_requirements)
-  #       {:noreply, state}
-  #   end
-  # end
 end

@@ -13,7 +13,7 @@ defmodule DBBench do
         end
       },
       time: 10,
-      memory_time: 2
+      memory_time: 0
     )
   end
 end

@@ -63,6 +63,6 @@ defmodule DBA do
   end
 
   def via_tuple(worker_id) do
-    :"__MODULE__#{worker_id}"
+    :"dba#{worker_id}"
   end
 end
