@@ -11,39 +11,29 @@ defmodule NodeConfig do
     services(node_type, String.to_integer(node_id))
   end
 
-  def services("beacon", _) do
-    [
-      {BeaconServer, name: BeaconServer},
-      {DBContact.Interface, name: DBContact.Interface},
-      {DBContact.NodeManager, name: DBContact.NodeManager},
-      {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]}
+  def services("s", block_id) do
+    topologies = [
+      game_server: [
+        strategy: Cluster.Strategy.Gossip
+      ]
     ]
-  end
 
-  def services("db", block_id) do
     [
-      {DBService.InterfaceSup, [block_id: block_id]},
-      {DBService.WorkerSup, name: DBService.WorkerSup},
+      {Gateway.Tcplistener, [Gateway.Tcpclient]},
+      {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
       {Horde.DynamicSupervisor,
        [
-         name: DBA.Sup,
+         name: DBManager.Sup,
          shutdown: 1000,
          strategy: :one_for_one,
          members: :auto,
-         process_redistribution: :active
-       ]}
+         process_redistribution: :passive
+       ]},
+      # {NodeManager, name: NodeManager},
+      {DBService.InterfaceSup, [block_id: block_id]},
+      {DBService.WorkerSup, name: DBService.WorkerSup}
     ]
-  end
-
-  def services("gateway", _) do
-    [
-      {Gateway.Tcplistener, [Gateway.Tcpclient]}
-    ]
-  end
-
-  def services("loby", _) do
-    []
   end
 
   def services(node_type, _) do

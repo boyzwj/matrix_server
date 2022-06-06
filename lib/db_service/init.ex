@@ -3,9 +3,7 @@ defmodule DBInit do
   alias DBInit.TableDef
   alias Memento.Table
 
-  def initialize(contact) do
-    db_list = GenServer.call({DBContact.NodeManager, contact}, :db_list)
-
+  def initialize(db_list) do
     case db_list do
       [] ->
         create_database(db_list)

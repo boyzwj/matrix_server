@@ -15,6 +15,12 @@ defmodule DBService.WorkerSup do
     DynamicSupervisor.start_link(__MODULE__, [], opts)
   end
 
+  def start_child(id) do
+    spec = {DBA, worker_id: id}
+    DynamicSupervisor.start_child(__MODULE__, spec)
+  end
+
+  @impl true
   def init(_opts) do
     DynamicSupervisor.init(strategy: :one_for_one)
   end

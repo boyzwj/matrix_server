@@ -1,6 +1,5 @@
-defmodule BeaconServer do
+defmodule NodeManager do
   use GenServer
-
   require Logger
 
   def start_link(opts \\ []) do
@@ -124,5 +123,9 @@ defmodule BeaconServer do
     for req <- requirement.name, res <- resources, req == res.name do
       res
     end
+  end
+
+  def get_members do
+    [node() | Node.list()]
   end
 end
