@@ -24,6 +24,7 @@ defmodule Server.MixProject do
   defp deps do
     [
       {:benchee, "~> 1.1", only: :dev},
+      {:uuid, "~> 1.1"},
       {:shorter_maps, "~> 2.2"},
       {:pipe_to, "~> 0.2.1"},
       {:sorted_set_nif, "~> 1.2.0"},

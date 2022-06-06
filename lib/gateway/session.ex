@@ -1,18 +1,18 @@
-defmodule Gateway.Tcpclient do
-  defstruct socket: nil,
+defmodule Gateway.Session do
+  defstruct session_id: <<>>,
+            socket: nil,
             account: <<>>,
-            session_id: <<>>,
             recv_buffer: <<>>,
             last_recv_index: 0,
             send_buffer: [],
             send_buffers: [],
             send_ref: nil,
-            player_pid: nil,
+            role_id: nil,
             last_heart: 0
 
   use GenServer
   use Common
-  alias Gateway.Tcpclient
+  alias Gateway.Session
   @pool_size 256
 
   @proto_authorize 101
@@ -39,8 +39,8 @@ defmodule Gateway.Tcpclient do
   def init(socket) do
     Process.send_after(self(), :loop, @second_interval)
     Process.put(:sid, self())
-    session_id = Ecto.UUID.generate() |> Util.md5() |> Base.encode16()
-    {:ok, ~M{%Tcpclient socket, session_id}}
+    session_id = UUID.uuid1() |> Base.encode64()
+    {:ok, ~M{%Session socket, session_id}}
   end
 
   @impl true
@@ -88,10 +88,10 @@ defmodule Gateway.Tcpclient do
     {:noreply, state}
   end
 
-  def handle_info(:loop, ~M{last_heart,player_pid} = state) do
+  def handle_info(:loop, ~M{last_heart,role_id} = state) do
     if last_heart > 0 and Util.unixtime() - last_heart > 30 do
-      if player_pid do
-        Role.RoleSvr.offline(player_pid)
+      if role_id do
+        Role.RoleSvr.offline(role_id)
         {:stop, :normal, state}
       else
         send(self(), :stop)
@@ -127,8 +127,8 @@ defmodule Gateway.Tcpclient do
   end
 
   @impl true
-  def terminate(_reason, ~M{session_id,player_pid,last_recv_index,send_buffers}) do
-    player_pid != nil and send(player_pid, :tcp_closed)
+  def terminate(_reason, ~M{_session_id,role_id,last_recv_index,send_buffers}) do
+    role_id && Role.RoleSvr.tcp_close(role_id)
     :ok
   end
 
@@ -165,29 +165,29 @@ defmodule Gateway.Tcpclient do
     ~M{state| send_buffer: [] ,send_ref: nil}
   end
 
-  defp handle_ping(%Tcpclient{player_pid: nil} = state, client_time) do
+  defp handle_ping(%Session{role_id: nil} = state, client_time) do
     state
   end
 
   defp handle_ping(
-         %Tcpclient{player_pid: player_pid, send_buffer: send_buffer} = state,
+         %Session{role_id: role_id, send_buffer: send_buffer} = state,
          client_time
        ) do
     last_heart = Util.longunixtime() / 1000
-    player_pid && send(player_pid, :ping)
+    role_id && Role.RoleSvr.ping(role_id)
     data = <<17::16-little, @proto_pong, last_heart::float, client_time::float>>
     send_buffer = [data | send_buffer]
     ~M{state |last_heart,send_buffer} |> do_send
   end
 
-  defp handle_proto(%Tcpclient{player_pid: nil} = state, data) do
+  defp handle_proto(%Session{role_id: nil} = state, data) do
     Logger.warning("unauth msg: #{data} ")
     state
   end
 
-  defp handle_proto(%Tcpclient{player_pid: player_pid} = state, data) do
-    with {{:ok, msg}, handler} <- PB.PP.decode(data) do
-      Role.RoleSvr.client_msg(player_pid, msg)
+  defp handle_proto(%Session{role_id: role_id} = state, data) do
+    with {:ok, msg} <- PB.PP.decode(data) do
+      Role.RoleSvr.client_msg(role_id, msg)
     else
       _ ->
         Logger.warning("receive undefined proto")
@@ -196,11 +196,11 @@ defmodule Gateway.Tcpclient do
     state
   end
 
-  defp handle_authorize(%Tcpclient{player_pid: nil} = state, token) do
+  defp handle_authorize(%Session{role_id: nil} = state, token) do
     state
   end
 
-  defp handle_authorize(%Tcpclient{player_pid: player_pid} = state, token) do
+  defp handle_authorize(%Session{role_id: role_id} = state, token) do
     state
   end
 

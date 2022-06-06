@@ -37,7 +37,7 @@ defmodule Role.Misc do
     Process.alive?(pid)
   end
 
-  defp reg_rid(role_id, pid) do
+  def reg_rid(role_id, pid) do
     name = role_pid_name(role_id)
     if Process.whereis(name), do: Process.unregister(name)
     Process.register(pid, name)

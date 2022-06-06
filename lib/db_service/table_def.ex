@@ -1,18 +1,19 @@
-defmodule User.Account do
+defmodule Service.Session do
   use Memento.Table,
-    attributes: [:id, :username, :password, :character_list, :email, :phone],
-    index: [:email, :username],
-    type: :ordered_set,
-    autoincrement: true
+    attributes: [:id, :role_id],
+    index: [:role_id]
+
+  # type: :ordered_set,
+  # autoincrement: true
 end
 
-defmodule User.Character do
-  use Memento.Table,
-    attributes: [:id, :name, :title, :base_attrs, :battle_attrs, :position, :hp, :sp, :mp],
-    index: [:name],
-    type: :ordered_set,
-    autoincrement: true
-end
+# defmodule User.Character do
+#   use Memento.Table,
+#     attributes: [:id, :name, :title, :base_attrs, :battle_attrs, :position, :hp, :sp, :mp],
+#     index: [:name],
+#     type: :ordered_set,
+#     autoincrement: true
+# end
 
 defmodule DBInit.TableDef do
   def stores() do
@@ -20,7 +21,7 @@ defmodule DBInit.TableDef do
   end
 
   def services do
-    [User.Account, User.Character]
+    [Service.Session]
   end
 
   def tables() do

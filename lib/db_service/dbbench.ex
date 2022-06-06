@@ -2,14 +2,13 @@ defmodule DBBench do
   def run() do
     Benchee.run(
       %{
-        "dirty_read" => fn ->
-          1..10000 |> Enum.each(&DBA.dirty_read(Role.Mod.System, &1))
-        end,
-        "dirty_write" => fn ->
+        "read" => fn ->
           1..10000
-          |> Enum.each(
-            &DBA.dirty_write(%Role.Mod.System{id: &1, update_at: 10000, last_ping: 10000})
-          )
+          |> Enum.each(&DBA.read(Service.Session, &1))
+        end,
+        "write" => fn ->
+          1..10000
+          |> Enum.each(&DBA.write(%Service.Session{id: &1, role_id: &1}))
         end
       },
       time: 10,

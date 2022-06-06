@@ -16,6 +16,18 @@ defmodule DBA do
     GenServer.call(via_tuple(worker_id), {:dirty_write, data})
   end
 
+  def read(tab, key) do
+    worker_id = :erlang.phash2({tab, key}, @db_worker_num) + 1
+    GenServer.call(via_tuple(worker_id), {:read, tab, key})
+  end
+
+  def write(data) when is_struct(data) do
+    tab = data.__struct__
+    key = data.id
+    worker_id = :erlang.phash2({tab, key}, @db_worker_num) + 1
+    GenServer.call(via_tuple(worker_id), {:write, data})
+  end
+
   def child_spec(opts) do
     worker_id = Keyword.fetch!(opts, :worker_id)
 
@@ -59,6 +71,20 @@ defmodule DBA do
       |> Memento.Query.Data.dump()
       |> :mnesia.dirty_write()
 
+    {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_call({:read, tab, key}, _from, state) do
+    # Logger.debug("do dirty read #{inspect(self())}")
+    reply = Memento.transaction!(fn -> Memento.Query.read(tab, key) end)
+    {:reply, reply, state}
+  end
+
+  @impl true
+  def handle_call({:write, data}, _from, state) do
+    # Logger.debug("do dirty read")
+    reply = Memento.transaction!(fn -> Memento.Query.write(data) end)
     {:reply, reply, state}
   end
 
