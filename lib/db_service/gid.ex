@@ -14,7 +14,8 @@ defmodule GID do
   end
 
   @impl true
-  def init([block_id]) do
+  def init(args) do
+    block_id = Keyword.get(args, :block_id, 1)
     Logger.debug("block: #{block_id} GID start")
     {:ok, %GID{block_id: block_id}}
   end

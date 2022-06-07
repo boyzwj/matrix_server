@@ -13,7 +13,6 @@ defmodule DBService.Interface do
   @impl true
   def init(args) do
     block_id = Keyword.get(args, :block_id, 1)
-    Logger.debug("interface start ,block_id #{block_id}")
     {:ok, %{db_contact: nil, server_state: :waiting_requirements, block_id: block_id}, 0}
   end
 
