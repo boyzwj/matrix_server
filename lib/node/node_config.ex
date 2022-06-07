@@ -35,6 +35,7 @@ defmodule NodeConfig do
          process_redistribution: :passive
        ]},
       {DBService.InterfaceSup, [block_id: block_id]},
+      {GID, [block_id]},
       {DBService.WorkerSup, name: DBService.WorkerSup}
     ]
   end

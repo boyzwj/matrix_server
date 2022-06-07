@@ -32,6 +32,7 @@ defmodule DBInit do
 
   defp create_tables() do
     Logger.info("Creating tables...", ansi_color: :yellow)
+    :mnesia.create_table(GID, [{:disc_copies, [node()]}, attributes: [:id, :value]])
 
     for {tab, type} <- TableDef.tables() do
       with :ok <- Table.create(tab, [{type, [node()]}]) do
@@ -52,6 +53,7 @@ defmodule DBInit do
 
   defp copy_tables() do
     Logger.info("Copying tables...", ansi_color: :yellow)
+    :mnesia.add_table_copy(GID, node(), :disc_copies)
 
     for {tab, type} <- TableDef.tables() do
       with :ok <- Table.create_copy(tab, node(), type) do

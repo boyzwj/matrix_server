@@ -13,6 +13,9 @@ defmodule Gateway.Session do
   use GenServer
   use Common
   alias Gateway.Session
+
+  @heart_time_out 30
+
   @pool_size 256
 
   @proto_authorize 101
@@ -89,7 +92,7 @@ defmodule Gateway.Session do
   end
 
   def handle_info(:loop, ~M{last_heart,role_id} = state) do
-    if last_heart > 0 and Util.unixtime() - last_heart > 30 do
+    if last_heart > 0 and Util.unixtime() - last_heart > @heart_time_out do
       if role_id do
         RoleSvr.offline(role_id)
         {:stop, :normal, state}
