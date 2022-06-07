@@ -91,7 +91,7 @@ defmodule Gateway.Session do
   def handle_info(:loop, ~M{last_heart,role_id} = state) do
     if last_heart > 0 and Util.unixtime() - last_heart > 30 do
       if role_id do
-        Role.RoleSvr.offline(role_id)
+        RoleSvr.offline(role_id)
         {:stop, :normal, state}
       else
         send(self(), :stop)
@@ -128,7 +128,7 @@ defmodule Gateway.Session do
 
   @impl true
   def terminate(_reason, ~M{_session_id,role_id,last_recv_index,send_buffers}) do
-    role_id && Role.RoleSvr.tcp_close(role_id)
+    role_id && RoleSvr.tcp_close(role_id)
     :ok
   end
 
@@ -174,7 +174,7 @@ defmodule Gateway.Session do
          client_time
        ) do
     last_heart = Util.longunixtime() / 1000
-    role_id && Role.RoleSvr.ping(role_id)
+    role_id && RoleSvr.ping(role_id)
     data = <<17::16-little, @proto_pong, last_heart::float, client_time::float>>
     send_buffer = [data | send_buffer]
     ~M{state |last_heart,send_buffer} |> do_send
@@ -187,7 +187,7 @@ defmodule Gateway.Session do
 
   defp handle_proto(%Session{role_id: role_id} = state, data) do
     with {:ok, msg} <- PB.PP.decode(data) do
-      Role.RoleSvr.client_msg(role_id, msg)
+      RoleSvr.client_msg(role_id, msg)
     else
       _ ->
         Logger.warning("receive undefined proto")

@@ -7,7 +7,7 @@ defmodule Role.Mod do
       use Common
 
       def load() do
-        DBA.dirty_read(__MODULE__, Role.RoleSvr.role_id())
+        DBA.dirty_read(__MODULE__, RoleSvr.role_id())
       end
 
       def init() do
@@ -18,11 +18,24 @@ defmodule Role.Mod do
         raise "#{__MODULE__}, init not implemented"
       end
 
-      def secondloop() do
-        get_data() |> secondloop()
+      def h(msg) do
+        with %__MODULE__{} = data <- get_data() |> h(msg) do
+          set_data(data)
+        else
+          error ->
+            Logger.warn("handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}")
+        end
       end
 
-      defp secondloop(_arg) do
+      defp h(data, msg) do
+        Logger.warn("unhandle msg: #{inspect(msg)} ")
+      end
+
+      def secondloop(now) do
+        get_data() |> secondloop(now)
+      end
+
+      defp secondloop(_data, _now) do
         :pass
       end
 
@@ -55,6 +68,7 @@ defmodule Role.Mod do
 
       def set_data(data) do
         Process.put({__MODULE__, :data}, data)
+        set_dirty(true)
       end
 
       def set_dirty(dirty?) do
@@ -65,7 +79,7 @@ defmodule Role.Mod do
         Process.get({__MODULE__, :dirty}, false)
       end
 
-      defoverridable init: 1, secondloop: 1, on_terminate: 0, save: 1
+      defoverridable init: 1, h: 2, secondloop: 2, on_terminate: 0, save: 1
     end
   end
 end

@@ -2,13 +2,16 @@ defmodule NodeConfig do
   use Common
 
   def services() do
-    [node_type, node_id] =
-      "#{node()}"
-      |> String.split("@")
-      |> List.first()
-      |> String.split("_")
-
-    services(node_type, String.to_integer(node_id))
+    with [node_type, node_id] <-
+           "#{node()}"
+           |> String.split("@")
+           |> List.first()
+           |> String.split("_") do
+      services(node_type, String.to_integer(node_id))
+    else
+      _ ->
+        services("s", 1)
+    end
   end
 
   def services("s", block_id) do
@@ -20,6 +23,7 @@ defmodule NodeConfig do
 
     [
       {Gateway.Tcplistener, [Gateway.Tcpclient]},
+      {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
       {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
       {Horde.DynamicSupervisor,
@@ -30,7 +34,6 @@ defmodule NodeConfig do
          members: :auto,
          process_redistribution: :passive
        ]},
-      # {NodeManager, name: NodeManager},
       {DBService.InterfaceSup, [block_id: block_id]},
       {DBService.WorkerSup, name: DBService.WorkerSup}
     ]
