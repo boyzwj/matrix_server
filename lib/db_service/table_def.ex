@@ -1,7 +1,8 @@
 defmodule Service.Session do
   use Memento.Table,
-    attributes: [:id, :role_id],
-    index: [:role_id]
+    attributes: [:id, :role_id]
+
+  # index: [:role_id]
 
   # type: :ordered_set,
   # autoincrement: true
