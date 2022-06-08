@@ -14,6 +14,6 @@ defmodule GW.ListenerSup do
       {GW.GameListener, port: port}
     ]
 
-    Supervisor.init(children, strategy: :one_fro_one)
+    Supervisor.init(children, strategy: :one_for_one)
   end
 end

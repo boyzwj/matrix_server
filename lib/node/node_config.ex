@@ -22,7 +22,8 @@ defmodule NodeConfig do
     ]
 
     [
-      {Gateway.Tcplistener, [Gateway.Tcpclient]},
+      # {Gateway.Tcplistener, [Gateway.Tcpclient]},
+      {GW.ListenerSup, {}},
       {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
       {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
