@@ -48,4 +48,19 @@ defmodule Robot.FSM do
     :ok = :gen_tcp.send(socket, <<len::16-little, data::binary>>)
     state
   end
+
+  def decode_body(state, <<@proto_authorize, data::binary>>) do
+    <<role_id::64-little, session_id::binary>> = Util.dec_rc4(data, @base_key)
+    Logger.debug("authorize ok, session_id: #{session_id}")
+    crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
+    status = @status_online
+    ~M{state|role_id,session_id,crypto_key,status}
+  end
+
+  def decode_body(state, <<@proto_ping, client_time::32-little, _server_time::32-little>>) do
+    now = Util.unixtime()
+    lag = (now - client_time) |> div(2)
+    Logger.debug("ping back, lag : #{lag}")
+    state
+  end
 end

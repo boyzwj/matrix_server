@@ -39,7 +39,20 @@ defmodule Role.Mod do
         :pass
       end
 
+      def on_offline() do
+        get_data() |> on_offline()
+      end
+
+      defp on_offline(data) do
+        data
+      end
+
       def on_terminate() do
+        get_data() |> on_terminate()
+      end
+
+      def on_terminate(data) do
+        data
       end
 
       def save() do
@@ -79,7 +92,7 @@ defmodule Role.Mod do
         Process.get({__MODULE__, :dirty}, false)
       end
 
-      defoverridable init: 1, h: 2, secondloop: 2, on_terminate: 0, save: 1
+      defoverridable init: 1, h: 2, secondloop: 2, on_offline: 1, on_terminate: 1, save: 1
     end
   end
 end

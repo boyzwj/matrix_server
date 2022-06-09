@@ -4,7 +4,7 @@ defmodule Robot.Worker do
             status: 0,
             role_id: 0,
             session_id: nil,
-            cryto_key: nil,
+            crypto_key: nil,
             last_recv_index: 0,
             last_send_index: 0,
             recv_buffer: <<>>
@@ -59,7 +59,9 @@ defmodule Robot.Worker do
     :"robot_#{worker_id}"
   end
 
-  def decode(state, data) do
-    state
+  defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
+    state |> Robot.FSM.decode_body(data) |> decode(left)
   end
+
+  defp decode(state, recv_buffer), do: ~M{state | recv_buffer}
 end

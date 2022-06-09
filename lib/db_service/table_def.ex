@@ -8,6 +8,11 @@ defmodule Service.Session do
   # autoincrement: true
 end
 
+defmodule Service.TokenAccount do
+  use Memento.Table,
+    attributes: [:token, :role_id, :reg_ip, :create_time]
+end
+
 # defmodule User.Character do
 #   use Memento.Table,
 #     attributes: [:id, :name, :title, :base_attrs, :battle_attrs, :position, :hp, :sp, :mp],
@@ -18,7 +23,7 @@ end
 
 defmodule DBInit.TableDef do
   def stores() do
-    PB.PP.modules()
+    [Service.TokenAccount | PB.PP.modules()]
   end
 
   def services do

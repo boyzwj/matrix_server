@@ -11,7 +11,8 @@ defmodule DBA do
 
   def dirty_write(data) when is_struct(data) do
     tab = data.__struct__
-    key = data.id
+    [keyfield | _] = tab.__info__.attributes
+    key = data |> Map.get(keyfield)
     worker_id = :erlang.phash2({tab, key}, @db_worker_num) + 1
     GenServer.call(via_tuple(worker_id), {:dirty_write, data})
   end
@@ -23,7 +24,8 @@ defmodule DBA do
 
   def write(data) when is_struct(data) do
     tab = data.__struct__
-    key = data.id
+    [keyfield | _] = tab.__info__.attributes
+    key = data |> Map.get(keyfield)
     worker_id = :erlang.phash2({tab, key}, @db_worker_num) + 1
     GenServer.call(via_tuple(worker_id), {:write, data})
   end

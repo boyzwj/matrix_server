@@ -23,7 +23,6 @@ defmodule NodeConfig do
 
     [
       # {Gateway.Tcplistener, [Gateway.Tcpclient]},
-      {GW.ListenerSup, {}},
       {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
       {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
@@ -36,13 +35,14 @@ defmodule NodeConfig do
          process_redistribution: :passive
        ]},
       {DBService.InterfaceSup, [block_id: block_id]},
+      {DBService.WorkerSup, name: DBService.WorkerSup},
       {GID, [block_id: block_id]},
-      {DBService.WorkerSup, name: DBService.WorkerSup}
+      {GW.ListenerSup, {}}
     ]
   end
 
   def services("robot", _block_id) do
-    [{Robot.Sup, name: Robot.Sup}]
+    [{Robot.Sup, name: Robot.Sup}, {Robot.Manager, []}]
   end
 
   def services(node_type, _) do

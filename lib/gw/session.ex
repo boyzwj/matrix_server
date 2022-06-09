@@ -67,7 +67,6 @@ defmodule GW.Session do
 
   @impl true
   def handle_info({:tcp, socket, data}, ~M{socket,transport,recv_buffer} = state) do
-    Logger.debug("receive #{inspect(data)}")
     state = state |> decode(recv_buffer <> data)
     :ok = transport.setopts(socket, active: :once)
     {:noreply, state, @timeout}
@@ -99,7 +98,9 @@ defmodule GW.Session do
     {:noreply, state}
   end
 
-  def handle_info(_, ~M{socket, transport} = state) do
+  def handle_info(msg, ~M{%GW.Session socket,role_id, transport} = state) do
+    Logger.debug("receive #{inspect(msg)} ,  shutdown")
+    role_id && RoleSvr.offline(role_id)
     transport.close(socket)
     {:stop, :shutdown, state}
   end
@@ -138,6 +139,7 @@ defmodule GW.Session do
          <<@proto_authorize, data::binary>>
        ) do
     with {:ok, role_id} <- Util.dec_rc4(data, @base_key) |> Authorize.authorize() do
+      RoleSvr.start(role_id)
       status = @status_authorized
       crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
       data = <<role_id::64-little, session_id::binary>> |> Util.enc_rc4(@base_key)
@@ -188,12 +190,16 @@ defmodule GW.Session do
   defp decode_body(state, <<@proto_ping, _client_time::32-little>> = data) do
     now = Util.unixtime()
     Process.send(self(), {:send_packet, data <> <<now::32-little>>}, [:nosuspend])
-    ~M{state|last_ping: now}
+    ~M{%GW.Session state|last_heart: now}
   end
 
   defp decode_body(~M{crypto_key} = state, <<@proto_data, data::binary>>) do
     data = Util.dec_rc4(data, crypto_key)
     decode_proto(state, data)
+  end
+
+  defp decode_body(%__MODULE__{status: @status_authorized} = state, _) do
+    state
   end
 
   defp decode_proto(
