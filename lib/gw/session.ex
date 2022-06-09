@@ -11,6 +11,7 @@ defmodule GW.Session do
             last_send_index: 0,
             recv_buffer: <<>>,
             send_buffer: [],
+            send_ref: nil,
             last_heart: 0,
             status: 0
 
@@ -66,9 +67,14 @@ defmodule GW.Session do
 
   @impl true
   def handle_info({:tcp, socket, data}, ~M{socket,transport,recv_buffer} = state) do
+    Logger.debug("receive #{inspect(data)}")
     state = state |> decode(recv_buffer <> data)
     :ok = transport.setopts(socket, active: :once)
     {:noreply, state, @timeout}
+  end
+
+  def handle_info(:do_send, state) do
+    {:noreply, do_send(state)}
   end
 
   def handle_info({:send_packet, packet}, ~M{send_buffer,send_ref} = state) do
@@ -89,7 +95,11 @@ defmodule GW.Session do
     {:noreply, newstate}
   end
 
-  def handle_info(_, {socket, transport} = state) do
+  def handle_info({:inet_reply, _socket, :ok}, state) do
+    {:noreply, state}
+  end
+
+  def handle_info(_, ~M{socket, transport} = state) do
     transport.close(socket)
     {:stop, :shutdown, state}
   end
@@ -131,7 +141,7 @@ defmodule GW.Session do
       status = @status_authorized
       crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
       data = <<role_id::64-little, session_id::binary>> |> Util.enc_rc4(@base_key)
-      packet = <<@proto_authorize, data>>
+      packet = <<@proto_authorize, data::binary>>
       :global.re_register_name(name(role_id), self())
       DBA.dirty_write(%Service.Session{id: session_id, role_id: role_id})
       Process.send(self(), {:send_packet, packet}, [:nosuspend])
@@ -190,9 +200,8 @@ defmodule GW.Session do
          ~M{%GW.Session role_id,last_recv_index} = state,
          <<index::32-little, data::binary>>
        ) do
-    with ^last_recv_index <- index - 1,
-         {:ok, msg} <- PB.PP.decode(data) do
-      RoleSvr.client_msg(role_id, msg)
+    with ^last_recv_index <- index - 1 do
+      RoleSvr.client_msg(role_id, data)
       ~M{state| last_recv_index: index}
     else
       _ ->

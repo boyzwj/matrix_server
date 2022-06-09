@@ -41,6 +41,10 @@ defmodule NodeConfig do
     ]
   end
 
+  def services("robot", _block_id) do
+    [{Robot.Sup, name: Robot.Sup}]
+  end
+
   def services(node_type, _) do
     Logger.debug("unknow node type #{inspect(node_type)}")
     []

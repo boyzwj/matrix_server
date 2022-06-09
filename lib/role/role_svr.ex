@@ -91,9 +91,15 @@ defmodule RoleSvr do
   end
 
   @impl true
-  def handle_cast({:client_msg, msg}, state) do
-    mod = msg |> Map.get(:__struct__) |> PB.PP.mod()
-    mod.h(msg)
+  def handle_cast({:client_msg, data}, state) do
+    with {:ok, msg} <- PB.PP.decode(data) do
+      mod = msg |> Map.get(:__struct__) |> PB.PP.mod()
+      mod.h(msg)
+    else
+      _ ->
+        Logger.warning("client msg decode error")
+    end
+
     {:noreply, state}
   end
 
