@@ -34,8 +34,25 @@ defmodule NodeConfig do
          members: :auto,
          process_redistribution: :passive
        ]},
-      {DBService.InterfaceSup, [block_id: block_id]},
+      # {DBService.InterfaceSup, [block_id: block_id]},
       {DBService.WorkerSup, name: DBService.WorkerSup},
+      {Redis.Manager, []}
+      # {GID, [block_id: block_id]},
+      # {GW.ListenerSup, {}}
+    ]
+  end
+
+  def services("gate", block_id) do
+    topologies = [
+      game_server: [
+        strategy: Cluster.Strategy.Gossip
+      ]
+    ]
+
+    [
+      {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
+      {DBService.WorkerSup, name: DBService.WorkerSup},
+      {Redis.Manager, []},
       {GID, [block_id: block_id]},
       {GW.ListenerSup, {}}
     ]

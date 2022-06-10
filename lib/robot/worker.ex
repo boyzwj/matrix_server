@@ -7,11 +7,12 @@ defmodule Robot.Worker do
             crypto_key: nil,
             last_recv_index: 0,
             last_send_index: 0,
-            recv_buffer: <<>>
+            recv_buffer: <<>>,
+            lag: 0
 
   use GenServer
   use Common
-
+  @loop_interval 1000
   ### =================== API =======================
 
   def child_spec(opts) do
@@ -39,9 +40,8 @@ defmodule Robot.Worker do
   ### ================== CALLBACK ==================
   @impl true
   def handle_info(:loop, state) do
-    Logger.debug("loop")
     state = Robot.FSM.loop(state)
-    Process.send_after(self(), :loop, 500)
+    Process.send_after(self(), :loop, @loop_interval)
     {:noreply, state}
   end
 

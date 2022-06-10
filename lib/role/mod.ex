@@ -11,11 +11,25 @@ defmodule Role.Mod do
       end
 
       def init() do
-        load() |> init()
+        data = load()
+
+        if data == nil do
+          RoleSvr.role_id()
+          |> on_first_init()
+          |> on_init()
+          |> set_data()
+        else
+          on_init(data)
+          |> set_data()
+        end
       end
 
-      defp init(_args) do
-        raise "#{__MODULE__}, init not implemented"
+      defp on_init(data) do
+        data
+      end
+
+      defp on_first_init(id) do
+        %__MODULE__{id: id}
       end
 
       def h(msg) do
@@ -92,7 +106,13 @@ defmodule Role.Mod do
         Process.get({__MODULE__, :dirty}, false)
       end
 
-      defoverridable init: 1, h: 2, secondloop: 2, on_offline: 1, on_terminate: 1, save: 1
+      defoverridable on_first_init: 1,
+                     on_init: 1,
+                     h: 2,
+                     secondloop: 2,
+                     on_offline: 1,
+                     on_terminate: 1,
+                     save: 1
     end
   end
 end

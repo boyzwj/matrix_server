@@ -16,7 +16,7 @@ defmodule DBService.WorkerSup do
   end
 
   def start_child(id) do
-    spec = {DBA, worker_id: id}
+    spec = {Redis, worker_id: id}
     DynamicSupervisor.start_child(__MODULE__, spec)
   end
 
