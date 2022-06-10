@@ -26,6 +26,10 @@ defmodule Redis do
     select_call("GET", [key])
   end
 
+  def incr(key) do
+    select_call("INCR", [key])
+  end
+
   def clearall() do
     select_call("FLUSHALL", [])
   end

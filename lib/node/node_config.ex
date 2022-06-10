@@ -14,7 +14,7 @@ defmodule NodeConfig do
     end
   end
 
-  def services("s", block_id) do
+  def services("s", _block_id) do
     topologies = [
       game_server: [
         strategy: Cluster.Strategy.Gossip
@@ -23,9 +23,10 @@ defmodule NodeConfig do
 
     [
       # {Gateway.Tcplistener, [Gateway.Tcpclient]},
-      {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
-      {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
+
+      {Cluster.Supervisor, [topologies, [name: Game.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
+      {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
       {Horde.DynamicSupervisor,
        [
          name: DBManager.Sup,

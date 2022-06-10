@@ -7,7 +7,8 @@ defmodule Role.Mod do
       use Common
 
       def load() do
-        DBA.dirty_read(__MODULE__, RoleSvr.role_id())
+        Redis.hget(RoleSvr.role_id(), __MODULE__) |> Poison.decode!(as: %__MODULE__{})
+        # %Role.Mod{}
       end
 
       def init() do
@@ -77,7 +78,9 @@ defmodule Role.Mod do
 
       defp save(data) do
         if is_dirty() do
-          with :ok <- DBA.dirty_write(data) do
+          data = Map.from_struct(data)
+
+          with v when is_integer(v) <- Redis.hset(RoleSvr.role_id(), __MODULE__, data) do
             set_dirty(false)
             true
           else

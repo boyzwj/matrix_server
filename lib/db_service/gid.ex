@@ -22,7 +22,7 @@ defmodule GID do
 
   @impl true
   def handle_call({:get, key}, _from, %GID{block_id: block_id} = state) do
-    value = :mnesia.dirty_update_counter(GID, {key, block_id}, 1)
+    value = Redis.incr("#{key}_#{block_id}")
     reply = @role_id_seed * block_id + value
     {:reply, reply, state}
   end

@@ -145,7 +145,7 @@ defmodule GW.Session do
       data = <<role_id::64-little, session_id::binary>> |> Util.enc_rc4(@base_key)
       packet = <<@proto_authorize, data::binary>>
       :global.re_register_name(name(role_id), self())
-      DBA.dirty_write(%Service.Session{id: session_id, role_id: role_id})
+      Redis.set("session:#{session_id}", role_id)
       Process.send(self(), {:send_packet, packet}, [:nosuspend])
       ~M{state| status,role_id,crypto_key}
     else
@@ -162,7 +162,7 @@ defmodule GW.Session do
     <<client_last_recv_index::32-little, role_id::64-little, old_session::binary-size(36)>> =
       Util.dec_rc4(data, @base_key)
 
-    with %{role_id: ^role_id} <- DBA.dirty_read(Service.Session, old_session),
+    with ^role_id <- Redis.get("session:#{old_session}"),
          {:ok, last_send_index, last_recv_index, send_buffer} <-
            GW.Session.reconnect(role_id, client_last_recv_index) do
       crypto_key = Util.md5(old_session <> <<role_id::64-little>> <> @base_key)

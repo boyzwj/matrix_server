@@ -39,7 +39,8 @@ defmodule Server.MixProject do
       {:libcluster, "~> 3.3"},
       {:ranch, "~> 2.1"},
       {:redix, "~> 1.1"},
-      {:castore, ">= 0.0.0"}
+      {:castore, ">= 0.0.0"},
+      {:poison, "~> 5.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
