@@ -26,8 +26,13 @@ defmodule GW.Session do
 
   @proto_authorize 1
   @proto_ping 2
-  @proto_data 3
-  @proto_reconnect 4
+  @proto_reconnect 3
+  @proto_data_rc4 4
+  @proto_data_lz4 5
+  @compress_flag 256
+
+
+
 
   ## API
 
@@ -193,10 +198,17 @@ defmodule GW.Session do
     ~M{%GW.Session state|last_heart: now}
   end
 
-  defp decode_body(~M{crypto_key} = state, <<@proto_data, data::binary>>) do
+
+  defp decode_body(~M{crypto_key} = state, <<@proto_data_rc4, data::binary>>) do
     data = Util.dec_rc4(data, crypto_key)
     decode_proto(state, data)
   end
+
+  defp decode_body(state, <<@proto_data_lz4, data::binary>>) do
+    {:ok, data} = :lz4.unpack(data)
+    decode_proto(state, data)
+  end
+
 
   defp decode_body(%__MODULE__{status: @status_authorized} = state, _) do
     state
@@ -218,9 +230,16 @@ defmodule GW.Session do
 
   defp pkg_pb_data(data, ~M{last_send_index,crypto_key}) do
     i = last_send_index + 1
-    data = [<<i::32-little>>, data] |> Util.enc_rc4(crypto_key)
-    len = byte_size(data) + 1
-    <<len::16-little, @proto_data, data::binary>>
+    data = [<<i::32-little>>, data]
+    if IO.iodata_length(data) >= @compress_flag do
+      {:ok,data} = :lz4.pack(data)
+      len = byte_size(data) + 1
+      <<len::16-little, @proto_data_lz4, data::binary>>
+    else
+      data =  Util.enc_rc4(data,crypto_key)
+      len = byte_size(data) + 1
+      <<len::16-little, @proto_data_rc4, data::binary>>
+    end
   end
 
   defp do_send(state, reverse \\ true)

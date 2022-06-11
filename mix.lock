@@ -22,6 +22,7 @@
   "libcluster": {:hex, :libcluster, "3.3.1", "e7a4875cd1290cee7a693d6bd46076863e9e433708b01339783de6eff5b7f0aa", [:mix], [{:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "b575ca63c1cd84e01f3fa0fc45e6eb945c1ee7ae8d441d33def999075e9e5398"},
   "libring": {:hex, :libring, "1.6.0", "d5dca4bcb1765f862ab59f175b403e356dec493f565670e0bacc4b35e109ce0d", [:mix], [], "hexpm", "5e91ece396af4bce99953d49ee0b02f698cd38326d93cd068361038167484319"},
   "logger_file_backend": {:hex, :logger_file_backend, "0.0.13", "df07b14970e9ac1f57362985d76e6f24e3e1ab05c248055b7d223976881977c2", [:mix], [], "hexpm", "71a453a7e6e899ae4549fb147b1c6621f4233f8f48f58ca10a64ec67b6c50018"},
+  "lz4": {:hex, :lz4_erl, "0.2.4", "fafc1fa39ed1d034893316852daebedd82f37df478446224ac096490be3b4a4d", [:rebar3], [], "hexpm", "e3eb9e2b5c1e4dab39db8fe0421e6fa10f9bf5843f20dab43518f8ab8e812517"},
   "memento": {:hex, :memento, "0.3.2", "38cfc8ff9bcb1adff7cbd0f3b78a762636b86dff764729d1c82d0464c539bdd0", [:mix], [], "hexpm", "25cf691a98a0cb70262f4a7543c04bab24648cb2041d937eb64154a8d6f8012b"},
   "merkle_map": {:hex, :merkle_map, "0.2.1", "01a88c87a6b9fb594c67c17ebaf047ee55ffa34e74297aa583ed87148006c4c8", [:mix], [], "hexpm", "fed4d143a5c8166eee4fa2b49564f3c4eace9cb252f0a82c1613bba905b2d04d"},
   "mime": {:hex, :mime, "2.0.2", "0b9e1a4c840eafb68d820b0e2158ef5c49385d17fb36855ac6e7e087d4b1dcc5", [:mix], [], "hexpm", "e6a3f76b4c277739e36c2e21a2c640778ba4c3846189d5ab19f97f126df5f9b7"},
