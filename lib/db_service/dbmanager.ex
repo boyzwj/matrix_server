@@ -62,6 +62,6 @@ defmodule DBManager do
   end
 
   def via_tuple(name) do
-    {:via, Horde.Registry, {Matrix.DBRegistry, name}}
+    {:via, Horde.Registry, {Matrix.Registry, name}}
   end
 end

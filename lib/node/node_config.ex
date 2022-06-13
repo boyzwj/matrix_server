@@ -14,19 +14,31 @@ defmodule NodeConfig do
     end
   end
 
-  def services("s", _block_id) do
+  def services("game", _block_id) do
     topologies = [
       game_server: [
         strategy: Cluster.Strategy.Gossip
       ]
     ]
 
+    role_inferfaces =
+      for worker_id <- 1..16 do
+        {Role.Interface, [worker_id]}
+      end
+
     [
       # {Gateway.Tcplistener, [Gateway.Tcpclient]},
 
       {Cluster.Supervisor, [topologies, [name: Game.ClusterSupervisor]]},
-      {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
-      {DynamicSupervisor, name: Role.Sup, strategy: :one_for_one},
+      # {Horde.Registry, [name: Matrix.RoleRegistry, keys: :unique, members: :auto]},
+      {DynamicSupervisor,
+       [
+         name: Role.Sup,
+         shutdown: 1000,
+         strategy: :one_for_one
+         #  members: :auto,
+         #  process_redistribution: :passive
+       ]},
       {Horde.DynamicSupervisor,
        [
          name: DBManager.Sup,
@@ -40,7 +52,7 @@ defmodule NodeConfig do
       {Redis.Manager, []}
       # {GID, [block_id: block_id]},
       # {GW.ListenerSup, {}}
-    ]
+    ] ++ role_inferfaces
   end
 
   def services("gate", block_id) do
@@ -52,6 +64,7 @@ defmodule NodeConfig do
 
     [
       {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
+      # {Horde.Registry, [name: Matrix.RoleRegistry, keys: :unique, members: :auto]},
       {DBService.WorkerSup, name: DBService.WorkerSup},
       {Redis.Manager, []},
       {GID, [block_id: block_id]},

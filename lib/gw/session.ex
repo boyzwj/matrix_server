@@ -31,9 +31,6 @@ defmodule GW.Session do
   @proto_data_lz4 5
   @compress_flag 256
 
-
-
-
   ## API
 
   def reconnect(role_id, client_last_recv_index) do
@@ -144,7 +141,7 @@ defmodule GW.Session do
          <<@proto_authorize, data::binary>>
        ) do
     with {:ok, role_id} <- Util.dec_rc4(data, @base_key) |> Authorize.authorize() do
-      RoleSvr.start(role_id)
+      {:ok, _pid} = Role.Interface.start_role_svr(role_id)
       status = @status_authorized
       crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
       data = <<role_id::64-little, session_id::binary>> |> Util.enc_rc4(@base_key)
@@ -198,7 +195,6 @@ defmodule GW.Session do
     ~M{%GW.Session state|last_heart: now}
   end
 
-
   defp decode_body(~M{crypto_key} = state, <<@proto_data_rc4, data::binary>>) do
     data = Util.dec_rc4(data, crypto_key)
     decode_proto(state, data)
@@ -209,7 +205,6 @@ defmodule GW.Session do
     decode_proto(state, data)
   end
 
-
   defp decode_body(%__MODULE__{status: @status_authorized} = state, _) do
     state
   end
@@ -219,7 +214,15 @@ defmodule GW.Session do
          <<index::32-little, data::binary>>
        ) do
     with ^last_recv_index <- index - 1 do
-      RoleSvr.client_msg(role_id, data)
+      pid = RoleSvr.pid(role_id)
+
+      if is_pid(pid) do
+        RoleSvr.client_msg(pid, data)
+      else
+        {:ok, pid} = Role.Interface.start_role_svr(role_id)
+        RoleSvr.client_msg(pid, data)
+      end
+
       ~M{state| last_recv_index: index}
     else
       _ ->
@@ -231,12 +234,13 @@ defmodule GW.Session do
   defp pkg_pb_data(data, ~M{last_send_index,crypto_key}) do
     i = last_send_index + 1
     data = [<<i::32-little>>, data]
+
     if IO.iodata_length(data) >= @compress_flag do
-      {:ok,data} = :lz4.pack(data)
+      {:ok, data} = :lz4.pack(data)
       len = byte_size(data) + 1
       <<len::16-little, @proto_data_lz4, data::binary>>
     else
-      data =  Util.enc_rc4(data,crypto_key)
+      data = Util.enc_rc4(data, crypto_key)
       len = byte_size(data) + 1
       <<len::16-little, @proto_data_rc4, data::binary>>
     end

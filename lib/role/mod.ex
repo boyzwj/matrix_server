@@ -7,7 +7,8 @@ defmodule Role.Mod do
       use Common
 
       def load() do
-        Redis.hget(RoleSvr.role_id(), __MODULE__) |> Poison.decode!(as: %__MODULE__{})
+        data = Redis.hget(RoleSvr.role_id(), __MODULE__)
+        data && Poison.decode!(data, as: %__MODULE__{})
         # %Role.Mod{}
       end
 

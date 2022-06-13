@@ -7,7 +7,10 @@ defmodule Main do
   require Logger
 
   def start(_type, _args) do
-    NodeConfig.services()
+    [
+      %{id: :pg, start: {:pg, :start_link, []}}
+      | NodeConfig.services()
+    ]
     |> Supervisor.start_link(strategy: :one_for_one, name: Matrix.Supervisor)
   end
 

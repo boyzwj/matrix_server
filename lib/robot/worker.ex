@@ -12,7 +12,7 @@ defmodule Robot.Worker do
 
   use GenServer
   use Common
-  @loop_interval 1000
+  @loop_interval 500
   ### =================== API =======================
 
   def child_spec(opts) do

@@ -11,12 +11,12 @@ defmodule RoleSvr do
   @loop_interval 1000
 
   ## =====API====
-  def start(role_id) do
-    DynamicSupervisor.start_child(
-      Role.Sup,
-      {__MODULE__, role_id}
-    )
-  end
+  # def start(role_id) do
+  #   DynamicSupervisor.start_child(
+  #     Role.Sup,
+  #     {__MODULE__, role_id}
+  #   )
+  # end
 
   def pid(role_id) do
     :global.whereis_name(name(role_id))
@@ -58,6 +58,7 @@ defmodule RoleSvr do
   ## ===CALLBACK====
   @impl true
   def init(role_id) do
+    Logger.debug("rolesvr [#{role_id}]  start")
     Process.put(:role_id, role_id)
     Process.send_after(self(), :secondloop, @loop_interval)
     Process.send(self(), :init, [:nosuspend])
@@ -125,6 +126,7 @@ defmodule RoleSvr do
   end
 
   def handle_cast(:offline, state) do
+    Logger.debug("role offline")
     hook(:on_offline)
     status = @status_offline
     {:noreply, ~M{%RoleSvr state|status}}
