@@ -10,65 +10,44 @@ defmodule NodeConfig do
       services(node_type, String.to_integer(node_id))
     else
       _ ->
-        services("s", 1)
+        services("aio", 1)
     end
   end
 
-  def services("game", _block_id) do
-    topologies = [
-      game_server: [
-        strategy: Cluster.Strategy.Gossip
-      ]
-    ]
+  def services("game", block_id) do
+    FastGlobal.put(:block_id, block_id)
+    topologies = Application.get_env(:matrix_server, :topologies)
 
     role_inferfaces =
-      for worker_id <- 1..16 do
+      for worker_id <- 1..Application.get_env(:matrix_server, :role_interface_num) do
         {Role.Interface, [worker_id]}
       end
 
     [
-      # {Gateway.Tcplistener, [Gateway.Tcpclient]},
-
-      {Cluster.Supervisor, [topologies, [name: Game.ClusterSupervisor]]},
-      # {Horde.Registry, [name: Matrix.RoleRegistry, keys: :unique, members: :auto]},
+      {Cluster.Supervisor, [topologies, [name: Matrix.ClusterSupervisor]]},
       {DynamicSupervisor,
        [
          name: Role.Sup,
          shutdown: 1000,
          strategy: :one_for_one
-         #  members: :auto,
-         #  process_redistribution: :passive
        ]},
-      {Horde.DynamicSupervisor,
+      {DynamicSupervisor,
        [
-         name: DBManager.Sup,
+         name: Redis.Sup,
          shutdown: 1000,
-         strategy: :one_for_one,
-         members: :auto,
-         process_redistribution: :passive
+         strategy: :one_for_one
        ]},
-      # {DBService.InterfaceSup, [block_id: block_id]},
-      {DBService.WorkerSup, name: DBService.WorkerSup},
       {Redis.Manager, []}
-      # {GID, [block_id: block_id]},
-      # {GW.ListenerSup, {}}
     ] ++ role_inferfaces
   end
 
   def services("gate", block_id) do
-    topologies = [
-      game_server: [
-        strategy: Cluster.Strategy.Gossip
-      ]
-    ]
+    FastGlobal.put(:block_id, block_id)
+    topologies = Application.get_env(:matrix_server, :topologies)
 
     [
-      {Cluster.Supervisor, [topologies, [name: Chat.ClusterSupervisor]]},
-      # {Horde.Registry, [name: Matrix.RoleRegistry, keys: :unique, members: :auto]},
-      {DBService.WorkerSup, name: DBService.WorkerSup},
-      {Redis.Manager, []},
-      {GID, [block_id: block_id]},
-      {GW.ListenerSup, {}}
+      {Cluster.Supervisor, [topologies, [name: Matrix.ClusterSupervisor]]},
+      {GW.ListenerSup, []}
     ]
   end
 

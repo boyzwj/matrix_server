@@ -6,8 +6,7 @@ defmodule GW.ListenerSup do
   end
 
   @impl true
-
-  def init({}) do
+  def init(_opts) do
     port = String.to_integer(System.get_env("PORT") || "4200")
 
     children = [

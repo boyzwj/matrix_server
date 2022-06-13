@@ -41,7 +41,8 @@ defmodule Server.MixProject do
       {:redix, "~> 1.1"},
       {:castore, ">= 0.0.0"},
       {:poison, "~> 5.0"},
-      {:lz4, "~> 0.2.4", hex: :lz4_erl}
+      {:lz4, "~> 0.2.4", hex: :lz4_erl},
+      {:fastglobal, "~> 1.0"}
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]

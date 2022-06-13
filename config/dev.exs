@@ -21,9 +21,15 @@ config :logger, :console,
 
 config :matrix_server,
   db_worker_num: 16,
+  role_interface_num: 16,
   redis_blocks: [
     {"127.0.0.1", 6379},
     {"127.0.0.1", 6380},
     {"127.0.0.1", 6381},
     {"127.0.0.1", 6382}
+  ],
+  topologies: [
+    game_server: [
+      strategy: Cluster.Strategy.Gossip
+    ]
   ]

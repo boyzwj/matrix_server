@@ -2,9 +2,8 @@ defmodule Redis do
   use GenServer
   use Common
   defstruct conns: {}
-  @db_worker_num Application.get_env(:matrix_server, :db_worker_num)
-  @redis_blocks Application.get_env(:matrix_server, :redis_blocks)
 
+  @redis_blocks Application.get_env(:matrix_server, :redis_blocks)
   ###       API          ###
   def hset(key, field, value) do
     select_call("HSET", [key, field, value])
@@ -34,19 +33,20 @@ defmodule Redis do
     select_call("FLUSHALL", [])
   end
 
-  def child_spec(opts) do
-    worker_id = Keyword.fetch!(opts, :worker_id)
+  def child_spec(worker_id) do
+    # worker_id = Keyword.fetch!(opts, :worker_id)
 
     %{
       id: "#{__MODULE__}_#{worker_id}",
-      start: {__MODULE__, :start_link, [worker_id]},
+      start: {__MODULE__, :start_link, []},
       shutdown: 10_000,
-      restart: :transient
+      restart: :transient,
+      type: :worker
     }
   end
 
-  def start_link(worker_id) do
-    GenServer.start_link(__MODULE__, [], name: via_tuple(worker_id))
+  def start_link() do
+    GenServer.start_link(__MODULE__, [])
   end
 
   @impl true
@@ -54,6 +54,7 @@ defmodule Redis do
     Logger.debug("Redis agent start")
     interval = Util.rand(1, 500)
     Process.send_after(self(), :connect_all, interval)
+    :pg.join(__MODULE__, self())
     {:ok, %Redis{}}
   end
 
@@ -85,13 +86,10 @@ defmodule Redis do
     {:reply, reply, state}
   end
 
-  def via_tuple(worker_id) do
-    :"redis#{worker_id}"
-  end
-
   defp worker_by_key(key) do
-    worker_id = :erlang.phash2(key, @db_worker_num) + 1
-    via_tuple(worker_id)
+    pids = :pg.get_members(__MODULE__)
+    index = :erlang.phash2(key, length(pids)) + 1
+    :lists.nth(index, pids)
   end
 
   defp select_call(cmd, []) do
