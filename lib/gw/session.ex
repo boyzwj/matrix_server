@@ -45,8 +45,7 @@ defmodule GW.Session do
   end
 
   @impl true
-  def init({ref, transport, opts}) do
-    IO.inspect(opts)
+  def init({ref, transport, _opts}) do
     {:ok, socket} = :ranch.handshake(ref)
     :ok = transport.setopts(socket, active: :once)
     session_id = UUID.uuid1()

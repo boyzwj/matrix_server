@@ -16,8 +16,12 @@ defmodule Redis.Manager do
 
   @impl true
   def handle_info(:start_worker, state) do
-    1..Application.get_env(:matrix_server, :db_worker_num, 1)
-    |> Enum.each(&DynamicSupervisor.start_child(Redis.Sup, {Redis, &1}))
+    for worker_id <- 1..Application.get_env(:matrix_server, :db_worker_num, 8) do
+      Horde.DynamicSupervisor.start_child(
+        Matrix.DistributedSupervisor,
+        {Redis, worker_id}
+      )
+    end
 
     {:noreply, state}
   end

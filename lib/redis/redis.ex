@@ -4,6 +4,8 @@ defmodule Redis do
   defstruct conns: {}
 
   @redis_blocks Application.get_env(:matrix_server, :redis_blocks)
+  @db_worker_num Application.get_env(:matrix_server, :db_worker_num)
+
   ###       API          ###
   def hset(key, field, value) do
     select_call("HSET", [key, field, value])
@@ -38,20 +40,20 @@ defmodule Redis do
 
     %{
       id: "#{__MODULE__}_#{worker_id}",
-      start: {__MODULE__, :start_link, []},
+      start: {__MODULE__, :start_link, [worker_id]},
       shutdown: 10_000,
       restart: :transient,
       type: :worker
     }
   end
 
-  def start_link() do
-    GenServer.start_link(__MODULE__, [])
+  def start_link(worker_id) do
+    Logger.debug("start redis #{worker_id}")
+    GenServer.start_link(__MODULE__, [], name: via(worker_id))
   end
 
   @impl true
   def init(_args) do
-    Logger.debug("Redis agent start")
     interval = Util.rand(1, 500)
     Process.send_after(self(), :connect_all, interval)
     :pg.join(__MODULE__, self())
@@ -87,9 +89,12 @@ defmodule Redis do
   end
 
   defp worker_by_key(key) do
-    pids = :pg.get_members(__MODULE__)
-    index = :erlang.phash2(key, length(pids)) + 1
-    :lists.nth(index, pids)
+    worker_id = :erlang.phash2(key, @db_worker_num) + 1
+    via(worker_id)
+  end
+
+  defp via(worker_id) do
+    {:via, Horde.Registry, {Matrix.DBRegistry, worker_id}}
   end
 
   defp select_call(cmd, []) do

@@ -20,7 +20,7 @@ config :logger, :console,
   level: :debug
 
 config :matrix_server,
-  db_worker_num: 16,
+  db_worker_num: 32,
   role_interface_num: 16,
   redis_blocks: [
     {"127.0.0.1", 6379},

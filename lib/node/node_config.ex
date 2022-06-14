@@ -10,7 +10,7 @@ defmodule NodeConfig do
       services(node_type, String.to_integer(node_id))
     else
       _ ->
-        services("aio", 1)
+        services("develop", 1)
     end
   end
 
@@ -37,6 +37,16 @@ defmodule NodeConfig do
          shutdown: 1000,
          strategy: :one_for_one
        ]},
+      {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
+      {
+        Horde.DynamicSupervisor,
+        [
+          name: Matrix.DistributedSupervisor,
+          shutdown: 1000,
+          strategy: :one_for_one,
+          members: :auto
+        ]
+      },
       {Redis.Manager, []}
     ] ++ role_inferfaces
   end
@@ -47,12 +57,49 @@ defmodule NodeConfig do
 
     [
       {Cluster.Supervisor, [topologies, [name: Matrix.ClusterSupervisor]]},
+      {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
       {GW.ListenerSup, []}
     ]
   end
 
   def services("robot", _block_id) do
     [{Robot.Sup, name: Robot.Sup}, {Robot.Manager, []}]
+  end
+
+  def services("develop", block_id) do
+    FastGlobal.put(:block_id, block_id)
+
+    role_inferfaces =
+      for worker_id <- 1..Application.get_env(:matrix_server, :role_interface_num) do
+        {Role.Interface, [worker_id]}
+      end
+
+    [
+      {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
+      {DynamicSupervisor,
+       [
+         name: Role.Sup,
+         shutdown: 1000,
+         strategy: :one_for_one
+       ]},
+      {DynamicSupervisor,
+       [
+         name: Redis.Sup,
+         shutdown: 1000,
+         strategy: :one_for_one
+       ]},
+      {
+        Horde.DynamicSupervisor,
+        [
+          name: Matrix.DistributedSupervisor,
+          shutdown: 1000,
+          strategy: :one_for_one,
+          members: :auto
+        ]
+      },
+      {Redis.Manager, []},
+      {GW.ListenerSup, []}
+    ] ++ role_inferfaces
   end
 
   def services(node_type, _) do

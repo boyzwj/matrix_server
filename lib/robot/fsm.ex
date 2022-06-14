@@ -14,7 +14,8 @@ defmodule Robot.FSM do
   @status_offline 3
 
   def server_list() do
-    [{'127.0.0.1', 4001}, {'127.0.0.1', 4002}]
+    [{'127.0.0.1', 4001}]
+    # [{'127.0.0.1', 4001}, {'127.0.0.1', 4002}]
   end
 
   def loop(%Worker{id: id, status: @status_init} = state) do

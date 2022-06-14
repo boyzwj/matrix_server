@@ -4,8 +4,11 @@ defmodule Role.Interface do
   defstruct state: nil
 
   def start_role_svr(role_id) do
-    roleid_to_pid(role_id)
-    |> GenServer.call({:start_role_svr, role_id}, 10_000)
+    case roleid_to_pid(role_id)
+         |> GenServer.call({:start_role_svr, role_id}, 10_000) do
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      {:ok, pid} -> {:ok, pid}
+    end
   end
 
   defp roleid_to_pid(role_id) do
