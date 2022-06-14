@@ -6,7 +6,7 @@ defmodule Authorize do
       Jason.decode(data)
     else
       role_id = GID.get_role_id()
-      Redis.set("accout:#{token}", role_id)
+      Redis.set("account:#{token}", role_id)
       {:ok, role_id}
     end
   end

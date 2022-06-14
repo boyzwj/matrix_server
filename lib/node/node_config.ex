@@ -103,7 +103,7 @@ defmodule NodeConfig do
   end
 
   def services(node_type, _) do
-    Logger.debug("unknow node type #{inspect(node_type)}")
+    Logger.warning("unknow node type #{inspect(node_type)}")
     []
   end
 end

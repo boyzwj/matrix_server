@@ -79,15 +79,6 @@ defmodule Redis do
     {:reply, reply, state}
   end
 
-  def handle_call(:clearall, _from, ~M{%Redis conns} = state) do
-    reply =
-      conns
-      |> Tuple.to_list()
-      |> Enum.each(&Redis.Cmd.clear(&1))
-
-    {:reply, reply, state}
-  end
-
   defp worker_by_key(key) do
     worker_id = :erlang.phash2(key, @db_worker_num) + 1
     via(worker_id)
@@ -105,6 +96,11 @@ defmodule Redis do
   defp select_call(cmd, [key | _] = args) do
     worker_by_key(key)
     |> GenServer.call({:cmd, cmd, args})
+  end
+
+  defp do_handle(~M{conns} = _state, "FLUSHALL", []) do
+    Tuple.to_list(conns)
+    |> Enum.each(&Redis.Cmd.clear(&1))
   end
 
   defp do_handle(~M{conns} = _state, cmd, []) do
