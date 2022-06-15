@@ -1,4 +1,4 @@
-defmodule GW.ListenerSup do
+defmodule GateWay.ListenerSup do
   use Supervisor
 
   def start_link(args) do
@@ -10,7 +10,7 @@ defmodule GW.ListenerSup do
     port = String.to_integer(System.get_env("PORT") || "4200")
 
     children = [
-      {GW.GameListener, port: port}
+      {GateWay.GameListener, port: port}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

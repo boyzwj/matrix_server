@@ -1,15 +1,11 @@
 defmodule Role.Mod do
-  defmacro __using__(opts) do
-    opts = Macro.expand(opts, __CALLER__)
-
+  defmacro __using__(_opts) do
     quote do
-      use Memento.Table, unquote(opts)
       use Common
 
       def load() do
         data = Redis.hget(RoleSvr.role_id(), __MODULE__)
         data && Poison.decode!(data, as: %__MODULE__{})
-        # %Role.Mod{}
       end
 
       def init() do
@@ -30,8 +26,8 @@ defmodule Role.Mod do
         data
       end
 
-      defp on_first_init(id) do
-        %__MODULE__{id: id}
+      defp on_first_init(_id) do
+        %__MODULE__{}
       end
 
       def h(msg) do
@@ -108,6 +104,11 @@ defmodule Role.Mod do
 
       def is_dirty() do
         Process.get({__MODULE__, :dirty}, false)
+      end
+
+      def sd(msg) do
+        sid = Process.get(:sid)
+        Role.Misc.send_to(sid, msg)
       end
 
       defoverridable on_first_init: 1,

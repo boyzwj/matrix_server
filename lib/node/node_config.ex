@@ -58,7 +58,7 @@ defmodule NodeConfig do
     [
       {Cluster.Supervisor, [topologies, [name: Matrix.ClusterSupervisor]]},
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
-      {GW.ListenerSup, []}
+      {GateWay.ListenerSup, []}
     ]
   end
 
@@ -98,7 +98,7 @@ defmodule NodeConfig do
         ]
       },
       {Redis.Manager, []},
-      {GW.ListenerSup, []}
+      {GateWay.ListenerSup, []}
     ] ++ role_inferfaces
   end
 

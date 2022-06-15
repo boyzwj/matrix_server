@@ -1,0 +1,17 @@
+syntax = "proto3";
+package chat;
+
+import "common.proto";
+
+message Chat2S{
+    uint32 channel = 1;
+    uint32 time = 2;
+    string content = 3;
+}
+
+message Chat2C{
+    uint32 channel = 1;
+    uint64 role_id = 2;
+    uint32 time = 3;
+    string content = 4;
+}

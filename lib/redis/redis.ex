@@ -56,7 +56,6 @@ defmodule Redis do
   def init(_args) do
     interval = Util.rand(1, 500)
     Process.send_after(self(), :connect_all, interval)
-    :pg.join(__MODULE__, self())
     {:ok, %Redis{}}
   end
 

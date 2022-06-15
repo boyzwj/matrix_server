@@ -1,10 +1,8 @@
 defmodule Mod.System do
-  use Role.Mod,
-    attributes: [:id, :last_ping, :update_at],
-    type: :set
+  defstruct id: nil, last_ping: nil, update_at: nil
+  use Role.Mod
 
   def h(state, %System.Ping2S{}) do
-    Logger.debug("receive ping2s")
     last_ping = Util.unixtime()
     ~M{state| last_ping}
   end

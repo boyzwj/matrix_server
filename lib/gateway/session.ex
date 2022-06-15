@@ -1,6 +1,7 @@
-defmodule GW.Session do
+defmodule GateWay.Session do
   use GenServer
   use Common
+  alias GateWay.Session
 
   defstruct socket: nil,
             transport: nil,
@@ -100,34 +101,34 @@ defmodule GW.Session do
     {:noreply, state}
   end
 
-  def handle_info(msg, ~M{%GW.Session socket,role_id, transport} = state) do
-    Logger.debug("receive #{inspect(msg)} ,  shutdown")
-    role_id && RoleSvr.offline(role_id)
-    transport.close(socket)
-    {:stop, :shutdown, state}
-  end
-
-  @impl true
-  def handle_cast(
+  def handle_info(
         {:send_buff, data},
         ~M{send_buffer, send_ref,last_send_index} = state
       ) do
     send_ref && Process.cancel_timer(send_ref)
     data = pkg_pb_data(data, state)
-    Process.put({:pb_cache, last_send_index + 1}, data)
-    :erlang.erase({:pb_cache, last_send_index + 1 - @send_buffer_queue_len})
+    last_send_index = last_send_index + 1
+    Process.put({:pb_cache, last_send_index}, data)
+    :erlang.erase({:pb_cache, last_send_index - @send_buffer_queue_len})
     send_buffer = [data | send_buffer]
 
     newstate =
       if IO.iodata_length(send_buffer) >= 1350 do
-        ~M{state| send_buffer}
+        ~M{state| send_buffer,last_send_index}
         |> do_send()
       else
         send_ref = Process.send_after(self(), :do_send, 10)
-        ~M{state| send_buffer,send_ref}
+        ~M{state| send_buffer,send_ref,last_send_index}
       end
 
     {:noreply, newstate}
+  end
+
+  def handle_info(msg, ~M{%Session socket,role_id, transport} = state) do
+    Logger.debug("receive #{inspect(msg)} ,  shutdown")
+    role_id && RoleSvr.offline(role_id)
+    transport.close(socket)
+    {:stop, :shutdown, state}
   end
 
   defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
@@ -149,6 +150,7 @@ defmodule GW.Session do
       :global.re_register_name(name(role_id), self())
       Redis.set("session:#{session_id}", role_id)
       Process.send(self(), {:send_packet, packet}, [:nosuspend])
+      :pg.join(__MODULE__, self())
       ~M{state| status,role_id,crypto_key}
     else
       _ ->
@@ -166,7 +168,7 @@ defmodule GW.Session do
 
     with ^role_id <- Redis.get("session:#{old_session}"),
          {:ok, last_send_index, last_recv_index, send_buffer} <-
-           GW.Session.reconnect(role_id, client_last_recv_index) do
+           Session.reconnect(role_id, client_last_recv_index) do
       crypto_key = Util.md5(old_session <> <<role_id::64-little>> <> @base_key)
       session_id = old_session
 
@@ -175,6 +177,8 @@ defmodule GW.Session do
       ]
 
       :global.re_register_name(name(role_id), self())
+
+      RoleSvr.reconnect(role_id)
 
       ~M{state |last_send_index,last_recv_index,crypto_key,session_id,send_buffer}
       |> do_send(false)
@@ -192,7 +196,7 @@ defmodule GW.Session do
   defp decode_body(state, <<@proto_ping, _client_time::32-little>> = data) do
     now = Util.unixtime()
     Process.send(self(), {:send_packet, data <> <<now::32-little>>}, [:nosuspend])
-    ~M{%GW.Session state|last_heart: now}
+    ~M{%Session state|last_heart: now}
   end
 
   defp decode_body(~M{crypto_key} = state, <<@proto_data_rc4, data::binary>>) do
@@ -210,7 +214,7 @@ defmodule GW.Session do
   end
 
   defp decode_proto(
-         ~M{%GW.Session role_id,last_recv_index} = state,
+         ~M{%Session role_id,last_recv_index} = state,
          <<index::32-little, data::binary>>
        ) do
     with ^last_recv_index <- index - 1 do
@@ -231,13 +235,20 @@ defmodule GW.Session do
     end
   end
 
-  defp pkg_pb_data(data, ~M{last_send_index,crypto_key}) do
+  defp pkg_pb_data(pbdata, ~M{last_send_index,crypto_key}) do
     i = last_send_index + 1
-    data = [<<i::32-little>>, data]
+    data = [<<i::32-little>>, pbdata]
 
-    if IO.iodata_length(data) >= @compress_flag do
-      {:ok, data} = :lz4.pack(data)
+    if (oldlen = IO.iodata_length(data)) >= @compress_flag do
+      {:ok, data} = data |> IO.iodata_to_binary() |> :lz4.pack()
       len = byte_size(data) + 1
+
+      if oldlen >= 512 do
+        Logger.warning(
+          "Packing big msg: #{pbdata |> IO.iodata_to_binary() |> PB.decode!() |> inspect}  compressed, [#{oldlen} byte] ==> [#{len - 1} byte]  #{Float.round((oldlen - len) * 100 / oldlen, 2)}% reduced"
+        )
+      end
+
       <<len::16-little, @proto_data_lz4, data::binary>>
     else
       data = Util.enc_rc4(data, crypto_key)
@@ -277,7 +288,7 @@ defmodule GW.Session do
     end
   end
 
-  defp name(role_id) do
+  def name(role_id) do
     :"sid_#{role_id}"
   end
 end

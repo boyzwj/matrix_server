@@ -30,6 +30,10 @@ defmodule RoleSvr do
     cast(role_id, {:client_msg, msg})
   end
 
+  def reconnect(role_id) do
+    cast(role_id, :reconnect)
+  end
+
   def offline(role_id) do
     cast(role_id, :offline)
   end
@@ -40,6 +44,10 @@ defmodule RoleSvr do
 
   def role_id() do
     Process.get(:role_id)
+  end
+
+  def sid() do
+    Process.get(:sid)
   end
 
   def child_spec(role_id) do
@@ -60,6 +68,7 @@ defmodule RoleSvr do
   def init(role_id) do
     Logger.debug("rolesvr [#{role_id}]  start")
     Process.put(:role_id, role_id)
+    Process.put(:sid, Role.Misc.sid(role_id))
     Process.send_after(self(), :secondloop, @loop_interval)
     Process.send(self(), :init, [:nosuspend])
     now = Util.unixtime()
@@ -105,8 +114,8 @@ defmodule RoleSvr do
 
   @impl true
   def handle_cast({:client_msg, data}, state) when is_binary(data) do
-    with {:ok, msg} <- PB.PP.decode(data) do
-      mod = msg |> Map.get(:__struct__) |> PB.PP.mod()
+    with {:ok, msg} <- PB.decode(data) do
+      mod = msg |> Map.get(:__struct__) |> PB.mod()
       mod.h(msg)
     else
       _ ->
@@ -114,8 +123,13 @@ defmodule RoleSvr do
     end
 
     last_msg_time = Util.unixtime()
+    {:noreply, ~M{%RoleSvr state | last_msg_time}}
+  end
+
+  def handle_cast(:reconnect, ~M{role_id} = state) do
+    Process.put(:sid, Role.Misc.sid(role_id))
     status = @status_online
-    {:noreply, ~M{%RoleSvr state | status,last_msg_time}}
+    {:noreply, ~M{state|status}}
   end
 
   def handle_cast(:exit, state) do
@@ -145,7 +159,7 @@ defmodule RoleSvr do
   end
 
   defp hook(f, args \\ []) do
-    for mod <- PB.PP.modules() do
+    for mod <- PB.modules() do
       try do
         apply(mod, f, args)
       catch

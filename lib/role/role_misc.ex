@@ -1,45 +1,28 @@
 defmodule Role.Misc do
-  def role_db_key(role_id) do
-    "role:#{role_id}"
-  end
-
-  def role_pid_name(role_id) do
-    "R_#{role_id}"
-    |> String.to_atom()
-  end
-
-  def sid_name(role_id) do
-    "S_#{role_id}"
-    |> String.to_atom()
-  end
-
-  def reg_sid(role_id, sid) do
-    name = sid_name(role_id)
-    if Process.whereis(name), do: Process.unregister(name)
-    Process.register(sid, name)
-  end
-
-  def role_sid(role_id) do
-    sid_name(role_id) |> Process.whereis()
-  end
-
-  def role_pid(role_id) do
-    role_pid_name(role_id) |> Process.whereis()
+  def sid(role_id) do
+    GateWay.Session.name(role_id)
+    |> :global.whereis_name()
   end
 
   def online(role_id) do
-    role_pid(role_id) |> alive()
+    role_id
+    |> sid()
+    |> Process.alive?()
   end
 
-  defp alive(nil), do: false
-
-  defp alive(pid) do
-    Process.alive?(pid)
+  def broad_cast_all(msg) do
+    if (pids = :pg.get_members(GateWay.Session)) != [] do
+      data = PB.encode!(msg)
+      Manifold.send(pids, {:send_buff, data})
+    end
   end
 
-  def reg_rid(role_id, pid) do
-    name = role_pid_name(role_id)
-    if Process.whereis(name), do: Process.unregister(name)
-    Process.register(pid, name)
+  def send_to(role_id, msg) when is_integer(role_id) do
+    sid = sid(role_id)
+    sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
+  end
+
+  def send_to(sid, msg) when is_pid(sid) do
+    sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
   end
 end
