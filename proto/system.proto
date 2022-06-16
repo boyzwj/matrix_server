@@ -6,3 +6,8 @@ import "common.proto";
 message Ping2S{
     uint32 time = 1;
 } 
+
+message Error2C{
+    uint32 error_code = 1;
+    string error_msg = 2;
+}

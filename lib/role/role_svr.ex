@@ -80,6 +80,7 @@ defmodule RoleSvr do
 
   @impl true
   def handle_info(:init, state) do
+    Role.load_data()
     hook(:init)
     {:noreply, state}
   end
@@ -99,11 +100,14 @@ defmodule RoleSvr do
   end
 
   def handle_info(:safe_stop, state) do
-    if Enum.all?(hook(:save)) do
+    try do
+      Role.save_all()
       {:stop, :normal, state}
-    else
-      Process.send_after(self(), :safe_stop, 1000)
-      {:noreply, state}
+    rescue
+      err ->
+        Logger.warning("safe save data error: #{inspect(err)}, retry later..")
+        Process.send_after(self(), :safe_stop, 1000)
+        {:noreply, state}
     end
   end
 
@@ -154,7 +158,7 @@ defmodule RoleSvr do
 
   @impl true
   def terminate(_reason, _state) do
-    hook(:save)
+    Role.save_all()
     :ok
   end
 

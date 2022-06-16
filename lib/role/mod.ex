@@ -4,12 +4,13 @@ defmodule Role.Mod do
       use Common
 
       def load() do
-        data = Redis.hget(RoleSvr.role_id(), __MODULE__)
+        # Logger.warning("load #{__MODULE__} data")
+        data = Redis.hget(Role.Misc.dbkey(), __MODULE__)
         data && Poison.decode!(data, as: %__MODULE__{})
       end
 
       def init() do
-        data = load()
+        data = get_data()
 
         if data == nil do
           RoleSvr.role_id()
@@ -31,9 +32,12 @@ defmodule Role.Mod do
       end
 
       def h(msg) do
-        with %__MODULE__{} = data <- get_data() |> h(msg) do
+        with {:ok, %__MODULE__{} = data} <- get_data() |> h(msg) do
           set_data(data)
         else
+          :ok ->
+            :ignore
+
           error ->
             Logger.warn("handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}")
         end
@@ -74,10 +78,10 @@ defmodule Role.Mod do
       defp save(nil), do: :ok
 
       defp save(data) do
-        if is_dirty() do
+        if dirty?() do
           data = Map.from_struct(data)
 
-          with v when is_integer(v) <- Redis.hset(RoleSvr.role_id(), __MODULE__, data) do
+          with v when is_integer(v) <- Redis.hset(Role.Misc.dbkey(), __MODULE__, data) do
             set_dirty(false)
             true
           else
@@ -89,6 +93,7 @@ defmodule Role.Mod do
         end
       end
 
+      @spec get_data() :: term
       def get_data() do
         Process.get({__MODULE__, :data})
       end
@@ -102,12 +107,18 @@ defmodule Role.Mod do
         Process.put({__MODULE__, :dirty}, dirty?)
       end
 
-      def is_dirty() do
+      def dirty?() do
         Process.get({__MODULE__, :dirty}, false)
       end
 
       def sd(msg) do
         sid = Process.get(:sid)
+        Role.Misc.send_to(sid, msg)
+      end
+
+      def sd_err(error_code, error_msg \\ nil) do
+        sid = Process.get(:sid)
+        msg = %System.Error2C{error_code: error_code, error_msg: error_msg}
         Role.Misc.send_to(sid, msg)
       end
 

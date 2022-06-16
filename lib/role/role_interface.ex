@@ -33,7 +33,7 @@ defmodule Role.Interface do
 
   @impl true
   def init(_args) do
-    Logger.debug("role manager started")
+    # Logger.debug("role manager started")
     :pg.join(__MODULE__, self())
     {:ok, %__MODULE__{}}
   end

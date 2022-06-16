@@ -4,6 +4,6 @@ defmodule Mod.System do
 
   def h(state, %System.Ping2S{}) do
     last_ping = Util.unixtime()
-    ~M{state| last_ping}
+    {:ok, ~M{state| last_ping}}
   end
 end

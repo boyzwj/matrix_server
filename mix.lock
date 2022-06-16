@@ -22,6 +22,7 @@
   "jemalloc_info": {:hex, :jemalloc_info, "0.3.0", "647301d9c7216b98da2d5a22ad42072ab2846ff880091903c1686b1546d845f6", [:mix], [], "hexpm", "a98abfc2efdd74aeb8f6128f6d64ad10a5e35310eb5477a61229f6806256f7f4"},
   "libcluster": {:hex, :libcluster, "3.3.1", "e7a4875cd1290cee7a693d6bd46076863e9e433708b01339783de6eff5b7f0aa", [:mix], [{:jason, "~> 1.1", [hex: :jason, repo: "hexpm", optional: false]}], "hexpm", "b575ca63c1cd84e01f3fa0fc45e6eb945c1ee7ae8d441d33def999075e9e5398"},
   "libring": {:hex, :libring, "1.6.0", "d5dca4bcb1765f862ab59f175b403e356dec493f565670e0bacc4b35e109ce0d", [:mix], [], "hexpm", "5e91ece396af4bce99953d49ee0b02f698cd38326d93cd068361038167484319"},
+  "limited_queue": {:hex, :limited_queue, "0.1.0", "08fbcbde73b04c005cbfa60a215dd35ca343536b85dbc9ee6cfc302fd0e224ce", [:mix], [], "hexpm", "9820a3a1db6ee024148ee8105c2c98f4bcad373081e3f5251fc10573ac6967fa"},
   "logger_file_backend": {:hex, :logger_file_backend, "0.0.13", "df07b14970e9ac1f57362985d76e6f24e3e1ab05c248055b7d223976881977c2", [:mix], [], "hexpm", "71a453a7e6e899ae4549fb147b1c6621f4233f8f48f58ca10a64ec67b6c50018"},
   "lz4": {:hex, :lz4_erl, "0.2.4", "fafc1fa39ed1d034893316852daebedd82f37df478446224ac096490be3b4a4d", [:rebar3], [], "hexpm", "e3eb9e2b5c1e4dab39db8fe0421e6fa10f9bf5843f20dab43518f8ab8e812517"},
   "manifold": {:hex, :manifold, "1.4.0", "4fb7922511eb5e3c22bc6821df1d10e63d4f26a6ada97a9c164d2390174cea1e", [:mix], [], "hexpm", "9c7b4ce07425421673559bf366d818ac0e3ca2e769d81087beb12fe4678e5251"},

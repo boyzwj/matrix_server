@@ -266,7 +266,7 @@ defmodule GateWay.Session do
     try do
       :erlang.port_command(socket, send_buffer, [:nosuspend])
     rescue
-      ArgumentError ->
+      _err ->
         Logger.debug("send fail: #{inspect(socket)},error: #{inspect(send_buffer)}")
     end
 

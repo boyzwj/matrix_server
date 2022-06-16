@@ -11,6 +11,12 @@ defmodule Redis do
     select_call("HSET", [key, field, value])
   end
 
+  def hset_array(_key, []), do: 0
+
+  def hset_array(key, array) do
+    select_call("HSET", [key | array])
+  end
+
   def hget(key, field) do
     select_call("HGET", [key, field])
   end
@@ -48,7 +54,7 @@ defmodule Redis do
   end
 
   def start_link(worker_id) do
-    Logger.debug("start redis #{worker_id}")
+    # Logger.debug("start redis #{worker_id}")
     GenServer.start_link(__MODULE__, [], name: via(worker_id))
   end
 

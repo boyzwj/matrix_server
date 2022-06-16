@@ -24,6 +24,7 @@ defmodule Server.MixProject do
   defp deps do
     [
       {:benchee, "~> 1.1", only: :dev},
+      {:limited_queue, "~> 0.1.0"},
       {:uuid, "~> 1.1"},
       {:shorter_maps, "~> 2.2"},
       {:pipe_to, "~> 0.2.1"},
@@ -33,9 +34,6 @@ defmodule Server.MixProject do
       {:protox, "~> 1.6"},
       {:horde, "~> 0.8.7"},
       {:observer_cli, "~> 1.7"},
-      # {:memento, "~> 0.3.2"},
-      # {:mnesia_eleveldb, git: "https://github.com/klarna/mnesia_eleveldb", tag: "1.1.1"},
-      # {:mnesia_rocksdb, git: "https://github.com/aeternity/mnesia_rocksdb.git", tag: "master"},
       {:libcluster, "~> 3.3"},
       {:ranch, "~> 2.1"},
       {:redix, "~> 1.1"},
@@ -44,15 +42,10 @@ defmodule Server.MixProject do
       {:lz4, "~> 0.2.4", hex: :lz4_erl},
       {:fastglobal, "~> 1.0"},
       {:manifold, "~> 1.4"}
-      # {:dep_from_hexpm, "~> 0.3.0"},
-      # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
 
   defp aliases do
-    [
-      "ecto.setup": ["ecto.create", "ecto.migrate"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"]
-    ]
+    []
   end
 end
