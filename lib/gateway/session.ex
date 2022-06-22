@@ -179,11 +179,14 @@ defmodule GateWay.Session do
       :global.re_register_name(name(role_id), self())
 
       RoleSvr.reconnect(role_id)
+      status = @status_authorized
+      Logger.debug("reconnect success")
 
-      ~M{state |last_send_index,last_recv_index,crypto_key,session_id,send_buffer}
+      ~M{state |status,last_send_index,last_recv_index,crypto_key,session_id,send_buffer}
       |> do_send(false)
     else
       _ ->
+        Logger.debug("reconnect fail")
         send_buffer = [<<2::16-little, @proto_reconnect, 0>>]
         ~M{state|send_buffer} |> do_send()
     end
@@ -195,6 +198,7 @@ defmodule GateWay.Session do
 
   defp decode_body(state, <<@proto_ping, _client_time::32-little>> = data) do
     now = Util.unixtime()
+    Logger.debug("receive ping #{now}")
     Process.send(self(), {:send_packet, data <> <<now::32-little>>}, [:nosuspend])
     ~M{%Session state|last_heart: now}
   end
@@ -230,7 +234,10 @@ defmodule GateWay.Session do
       ~M{state| last_recv_index: index}
     else
       _ ->
-        Logger.warning("receive undefined proto")
+        Logger.warning(
+          "receive undefined proto last_recv_index:#{last_recv_index}, index:#{index}"
+        )
+
         state
     end
   end
