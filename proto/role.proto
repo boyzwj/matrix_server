@@ -1,0 +1,4 @@
+syntax = "proto3";
+package role;
+import "common.proto";
+

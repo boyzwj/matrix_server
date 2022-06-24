@@ -3,9 +3,9 @@ package system;
 
 import "common.proto";
 
-message Ping2S{
-    uint32 time = 1;
-} 
+// message Ping2S{
+//     uint32 time = 1;
+// } 
 
 message Error2C{
     uint32 error_code = 1;

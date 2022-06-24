@@ -6,6 +6,7 @@ defmodule Robot.FSM do
   @status_connected 1
   @status_online 2
   @status_offline 3
+  @status_reconnecting 4
 
   def server_list() do
     [{'127.0.0.1', 4001}]
@@ -34,7 +35,6 @@ defmodule Robot.FSM do
   def loop(%Worker{status: @status_online} = state) do
     state
     |> Worker.send_ping()
-    |> Worker.send_buf(%System.Ping2S{time: Util.unixtime()})
     |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
   end
 

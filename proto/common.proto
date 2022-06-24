@@ -1,27 +1,9 @@
 syntax = "proto3";
 package common;
 
-enum EnumAllowingAlias {
-    option allow_alias = true;
-    UNKNOWN = 0;
-    STARTED = 1;
-    RUNNING = 1;
-}
-
-message Test {
-    string query = 1;
-    int32 page_number = 2;
-    int32 result_per_page = 3;
-    repeated int32 samples = 4 [packed=true];
-    enum Corpus {
-        UNIVERSAL = 0;
-        WEB = 1;
-        IMAGES = 2;
-        LOCAL = 3;
-        NEWS = 4;
-        PRODUCTS = 5;
-        VIDEO = 6;
-    }
-
-    Corpus corpus = 5;
+message RoleInfo{
+    uint64 role_id = 1; //玩家ID
+    string role_name = 2; //角色名称
+    uint32 head_id = 3;  //头像ID
+    uint32 avatar_id = 4; //AVATAR_ID
 }
