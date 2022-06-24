@@ -19,7 +19,9 @@ defmodule PB.PBID do
     %{protos: protos} = read_files(%{package: "", module: "", protos: [], layer: 0}, file_list)
 
     for {proto, package} <- protos do
-      id = :erlang.phash2(proto, 65536)
+      # id = :erlang.phash2(proto, 65536)
+      <<seed::128>> = Util.md5(proto)
+      id = rem(seed, 65536)
       %{id: id, proto: proto, package: package}
     end
     |> proto_ids_duplicate_check()

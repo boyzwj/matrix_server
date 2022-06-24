@@ -1,7 +1,12 @@
 defmodule PB do
   require Logger
   use PipeTo.Override
-  use Protox, files: File.ls!("./proto") |> Enum.map(&"./proto/#{&1}")
+
+  use Protox,
+    files:
+      File.ls!("./proto")
+      |> Enum.filter(&String.ends_with?(&1, ".proto"))
+      |> Enum.map(&"./proto/#{&1}")
 
   proto_ids = PB.PBID.proto_ids()
 
