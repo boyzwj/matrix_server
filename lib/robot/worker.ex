@@ -145,7 +145,7 @@ defmodule Robot.Worker do
       msg = PB.decode!(data)
 
       ~M{state| last_recv_index: index}
-      |> FSM.handle(msg)
+      |> Robot.Handler.h(msg)
     else
       _ ->
         Logger.warning("receive undefined proto")

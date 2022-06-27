@@ -42,11 +42,6 @@ defmodule Robot.FSM do
     state
   end
 
-  def handle(state, msg) do
-    Logger.warning("unhandle msg: #{inspect(msg)}")
-    state
-  end
-
   def login_ok(state) do
     status = @status_online
     ~M{%Worker state| status}
