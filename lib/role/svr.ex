@@ -1,4 +1,4 @@
-defmodule RoleSvr do
+defmodule Role.Svr do
   use GenServer
   use Common
   defstruct role_id: nil, last_save_time: nil, status: 0, last_msg_time: nil
@@ -66,24 +66,25 @@ defmodule RoleSvr do
   ## ===CALLBACK====
   @impl true
   def init(role_id) do
-    Logger.debug("rolesvr [#{role_id}]  start")
+    Logger.debug("role.svr [#{role_id}]  start")
     Process.put(:role_id, role_id)
     Process.put(:sid, Role.Misc.sid(role_id))
     Process.send_after(self(), :secondloop, @loop_interval)
-    Process.send(self(), :init, [:nosuspend])
+    Role.load_data()
+    hook(:init)
     now = Util.unixtime()
     last_save_time = now
     last_msg_time = now
     status = @status_init
-    {:ok, ~M{%RoleSvr role_id,last_save_time,status,last_msg_time}}
+    {:ok, ~M{%Role.Svr role_id,last_save_time,status,last_msg_time}}
   end
 
   @impl true
-  def handle_info(:init, state) do
-    Role.load_data()
-    hook(:init)
-    {:noreply, state}
-  end
+  # def handle_info(:init, state) do
+  #   Role.load_data()
+  #   hook(:init)
+  #   {:noreply, state}
+  # end
 
   def handle_info(:secondloop, state) do
     now = Util.unixtime()
@@ -127,7 +128,7 @@ defmodule RoleSvr do
     end
 
     last_msg_time = Util.unixtime()
-    {:noreply, ~M{%RoleSvr state | last_msg_time}}
+    {:noreply, ~M{%Role.Svr state | last_msg_time}}
   end
 
   def handle_cast(:reconnect, ~M{role_id} = state) do
@@ -147,7 +148,7 @@ defmodule RoleSvr do
     Logger.debug("role offline")
     hook(:on_offline)
     status = @status_offline
-    {:noreply, ~M{%RoleSvr state|status}}
+    {:noreply, ~M{%Role.Svr state|status}}
   end
 
   @impl true
@@ -163,9 +164,15 @@ defmodule RoleSvr do
   end
 
   defp hook(f, args \\ []) do
+    args_len = length(args)
+
     for mod <- PB.modules() do
       try do
-        apply(mod, f, args)
+        if function_exported?(mod, f, args_len) do
+          apply(mod, f, args)
+        else
+          true
+        end
       catch
         kind, reason ->
           Logger.error("#{mod} [#{f}] error !! #{kind} , #{reason}, #{inspect(__STACKTRACE__)} ")
@@ -174,7 +181,7 @@ defmodule RoleSvr do
     end
   end
 
-  defp check_save(~M{%RoleSvr last_save_time} = state, now) do
+  defp check_save(~M{%Role.Svr last_save_time} = state, now) do
     if now - last_save_time >= @save_interval do
       hook(:save)
       ~M{state | last_save_time: now }
@@ -183,7 +190,7 @@ defmodule RoleSvr do
     end
   end
 
-  defp check_down(~M{%RoleSvr last_msg_time,status} = state, now) do
+  defp check_down(~M{%Role.Svr last_msg_time,status} = state, now) do
     timeout = now - last_msg_time
 
     cond do

@@ -126,7 +126,7 @@ defmodule GateWay.Session do
 
   def handle_info(msg, ~M{%Session socket,role_id, transport} = state) do
     Logger.debug("receive #{inspect(msg)} ,  shutdown")
-    role_id && RoleSvr.offline(role_id)
+    role_id && Role.Svr.offline(role_id)
     transport.close(socket)
     {:stop, :shutdown, state}
   end
@@ -178,7 +178,7 @@ defmodule GateWay.Session do
 
       :global.re_register_name(name(role_id), self())
 
-      RoleSvr.reconnect(role_id)
+      Role.Svr.reconnect(role_id)
       status = @status_authorized
       Logger.debug("reconnect success")
 
@@ -222,13 +222,13 @@ defmodule GateWay.Session do
          <<index::32-little, data::binary>>
        ) do
     with ^last_recv_index <- index - 1 do
-      pid = RoleSvr.pid(role_id)
+      pid = Role.Svr.pid(role_id)
 
       if is_pid(pid) do
-        RoleSvr.client_msg(pid, data)
+        Role.Svr.client_msg(pid, data)
       else
         {:ok, pid} = Role.Interface.start_role_svr(role_id)
-        RoleSvr.client_msg(pid, data)
+        Role.Svr.client_msg(pid, data)
       end
 
       ~M{state| last_recv_index: index}

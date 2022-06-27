@@ -4,7 +4,6 @@ defmodule Role.Mod do
       use Common
 
       def load() do
-        # Logger.warning("load #{__MODULE__} data")
         data = Redis.hget(Role.Misc.dbkey(), __MODULE__)
         data && Poison.decode!(data, as: %__MODULE__{})
       end
@@ -13,7 +12,7 @@ defmodule Role.Mod do
         data = get_data()
 
         if data == nil do
-          RoleSvr.role_id()
+          Role.Svr.role_id()
           |> on_first_init()
           |> on_init()
           |> set_data()
@@ -24,10 +23,11 @@ defmodule Role.Mod do
       end
 
       defp on_init(data) do
-        data
+        data || %__MODULE__{}
       end
 
       defp on_first_init(_id) do
+        IO.inspect("first init")
         %__MODULE__{}
       end
 
@@ -38,8 +38,13 @@ defmodule Role.Mod do
           :ok ->
             :ignore
 
+          :ignore ->
+            :ignore
+
           error ->
-            Logger.warn("handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}")
+            Logger.warn(
+              "handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}, expect end with {:ok, newstate}, :ok , :ignore"
+            )
         end
       end
 
@@ -78,18 +83,17 @@ defmodule Role.Mod do
       defp save(nil), do: :ok
 
       defp save(data) do
-        if dirty?() do
-          data = Map.from_struct(data)
-
-          with v when is_integer(v) <- Redis.hset(Role.Misc.dbkey(), __MODULE__, data) do
-            set_dirty(false)
-            true
-          else
-            _ ->
-              false
-          end
-        else
+        with true <- dirty?(),
+             data <- Map.from_struct(data),
+             v when is_integer(v) <- Redis.hset(Role.Misc.dbkey(), __MODULE__, data) do
+          set_dirty(false)
           true
+        else
+          false ->
+            true
+
+          _ ->
+            false
         end
       end
 
@@ -109,6 +113,10 @@ defmodule Role.Mod do
 
       def dirty?() do
         Process.get({__MODULE__, :dirty}, false)
+      end
+
+      def role_id() do
+        Process.get(:role_id)
       end
 
       def sd(msg) do

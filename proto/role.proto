@@ -2,3 +2,10 @@ syntax = "proto3";
 package role;
 import "common.proto";
 
+message Info2S{
+
+}
+
+message Info2C{
+    common.RoleInfo role_info = 1;
+}

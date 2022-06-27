@@ -40,7 +40,7 @@ defmodule Role.Interface do
 
   @impl true
   def handle_call({:start_role_svr, role_id}, _from, state) do
-    reply = DynamicSupervisor.start_child(Role.Sup, {RoleSvr, role_id})
+    reply = DynamicSupervisor.start_child(Role.Sup, {Role.Svr, role_id})
     {:reply, reply, state}
   end
 end

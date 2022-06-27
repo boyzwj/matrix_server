@@ -13,7 +13,7 @@ defmodule PB do
   pkgs =
     for %{id: _id, proto: proto} <- proto_ids, m = Module.concat([proto]), into: MapSet.new() do
       [pkg, _method] = String.split(proto, ".", parts: 2)
-      mod = Module.concat(["Elixir", "Mod", pkg])
+      mod = Module.concat(["Elixir", "Role", "Mod", pkg])
 
       def mod(unquote(m)) do
         unquote(mod)

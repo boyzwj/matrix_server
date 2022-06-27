@@ -7,3 +7,15 @@ message RoleInfo{
     uint32 head_id = 3;  //头像ID
     uint32 avatar_id = 4; //AVATAR_ID
 }
+
+//房间信息
+message Room{
+    uint32 room_id = 1;  //房间ID
+    RoleInfo owner = 2;    //房主
+    uint32 type = 3;     //房间类型
+    uint32 status = 4;    //房间状态
+    uint32 member_num = 5; //成员数量
+    uint32 member_cap = 6; //成员上限
+    uint32 create_time = 7; //创建时间
+    string enc_password = 8;   //MD5密码
+}

@@ -1,6 +1,6 @@
 defmodule Role.Misc do
   def dbkey() do
-    RoleSvr.role_id() |> dbkey()
+    Role.Svr.role_id() |> dbkey()
   end
 
   def dbkey(role_id) do
