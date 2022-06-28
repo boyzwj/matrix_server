@@ -7,7 +7,7 @@ defmodule Role.Mod do
       use Common
 
       @doc """
-      上线从Redis加载角色数据
+      从Redis加载角色数据
       """
       def load() do
         data = Redis.hget(Role.Misc.dbkey(), __MODULE__)

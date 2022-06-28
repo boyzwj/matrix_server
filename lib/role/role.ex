@@ -1,6 +1,9 @@
 defmodule Role do
   use Common
 
+  @moduledoc """
+  上线加载游戏所有数据
+  """
   def load_data() do
     Role.Misc.dbkey()
     |> Redis.hgetall()
