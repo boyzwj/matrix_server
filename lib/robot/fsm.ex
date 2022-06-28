@@ -20,7 +20,7 @@ defmodule Robot.FSM do
     with {:ok, socket} <- :gen_tcp.connect(addr, port, [:binary, active: true]) do
       Logger.debug("socket connected")
       status = @status_connected
-      ~M{%Worker state| socket,status} |> loop()
+      ~M{%Worker state| addr,port,socket,status} |> loop()
     else
       err ->
         Logger.debug("robot #{id} connect error #{inspect(err)}")
@@ -38,7 +38,21 @@ defmodule Robot.FSM do
     |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
   end
 
-  def loop(%Worker{status: @status_offline} = state) do
+  def loop(%Worker{status: @status_offline, addr: addr, port: port} = state) do
+    Logger.debug("offline , try to reconnect")
+
+    with {:ok, socket} <- :gen_tcp.connect(addr, port, [:binary, active: true]) do
+      status = @status_reconnecting
+      ~M{%Worker state| socket,status} |> loop()
+    else
+      err ->
+        Logger.debug("reconnect fail, #{inspect(err)}")
+        state
+    end
+  end
+
+  def loop(%Worker{status: @status_reconnecting} = state) do
+    Logger.debug("socket connected, try resume session")
     state
   end
 

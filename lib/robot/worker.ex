@@ -1,5 +1,7 @@
 defmodule Robot.Worker do
   defstruct id: nil,
+            addr: nil,
+            port: nil,
             socket: nil,
             status: 0,
             role_id: 0,
@@ -25,6 +27,12 @@ defmodule Robot.Worker do
   @proto_data_rc4 4
   @proto_data_lz4 5
   @compress_flag 256
+
+  @status_init 0
+  @status_connected 1
+  @status_online 2
+  @status_offline 3
+  @status_reconnecting 4
 
   ### =================== API =======================
 
@@ -88,6 +96,11 @@ defmodule Robot.Worker do
   def handle_info({:tcp, _socket, data}, ~M{recv_buffer} = state) do
     state = state |> decode(recv_buffer <> data)
     {:noreply, state}
+  end
+
+  def handle_info({:tcp_closed, _socket}, state) do
+    status = @status_offline
+    {:noreply, ~M{state|status}}
   end
 
   def handle_info(msg, state) do

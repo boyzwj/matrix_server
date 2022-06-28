@@ -14,9 +14,18 @@ defmodule PB.PBID do
 
   def proto_version(), do: @proto_version
 
+  @status_content 0
+  @status_line_comment 1
+  @status_range_comment 2
+
   def proto_ids() do
     file_list = File.ls!(@path) |> Enum.filter(&String.ends_with?(&1, ".proto"))
-    %{protos: protos} = read_files(%{package: "", module: "", protos: [], layer: 0}, file_list)
+
+    %{protos: protos} =
+      read_files(
+        %{package: "", module: "", protos: [], layer: 0},
+        file_list
+      )
 
     for {proto, package} <- protos do
       # id = :erlang.phash2(proto, 65536)
@@ -49,14 +58,34 @@ defmodule PB.PBID do
 
   defp read_file(result, filename) do
     data = File.read!("#{@path}/#{filename}")
-    do_read(result, data)
+    do_read(result, data, @status_content)
   end
 
   def upper_first(<<a::binary-size(1), data::binary>>) do
     String.upcase(a) <> data
   end
 
-  defp do_read(result, <<"package ", data::binary>>) do
+  defp do_read(result, <<"//", data::binary>>, @status_content) do
+    status = @status_line_comment
+    result |> do_read(data, status)
+  end
+
+  defp do_read(result, <<"\n", data::binary>>, @status_line_comment) do
+    status = @status_content
+    result |> do_read(data, status)
+  end
+
+  defp do_read(result, <<"/*", data::binary>>, @status_content) do
+    status = @status_range_comment
+    result |> do_read(data, status)
+  end
+
+  defp do_read(result, <<"*/", data::binary>>, @status_range_comment) do
+    status = @status_content
+    result |> do_read(data, status)
+  end
+
+  defp do_read(result, <<"package ", data::binary>>, @status_content = status) do
     [package, data] = String.split(data, ";", parts: 2)
 
     module =
@@ -64,12 +93,13 @@ defmodule PB.PBID do
       |> Enum.map(&upper_first(&1))
       |> Enum.join()
 
-    %{result | package: package, module: module} |> do_read(data)
+    %{result | package: package, module: module} |> do_read(data, status)
   end
 
   defp do_read(
          %{protos: protos, package: package, module: module, layer: 0} = result,
-         <<"message ", data::binary>>
+         <<"message ", data::binary>>,
+         @status_content = status
        ) do
     [msg, data] = String.split(data, "{", parts: 2)
 
@@ -82,25 +112,25 @@ defmodule PB.PBID do
       |> (&"#{module}.#{&1}").()
 
     if String.ends_with?(msg, "2C") || String.ends_with?(msg, "2S") do
-      %{result | layer: 1, protos: [{msg, package} | protos]} |> do_read(data)
+      %{result | layer: 1, protos: [{msg, package} | protos]} |> do_read(data, status)
     else
-      %{result | layer: 1} |> do_read(data)
+      %{result | layer: 1} |> do_read(data, status)
     end
   end
 
-  defp do_read(%{layer: layer} = result, <<"{", data::binary>>) do
-    %{result | layer: layer + 1} |> do_read(data)
+  defp do_read(%{layer: layer} = result, <<"{", data::binary>>, @status_content = status) do
+    %{result | layer: layer + 1} |> do_read(data, status)
   end
 
-  defp do_read(%{layer: layer} = result, <<"}", data::binary>>) do
-    %{result | layer: layer - 1} |> do_read(data)
+  defp do_read(%{layer: layer} = result, <<"}", data::binary>>, @status_content = status) do
+    %{result | layer: layer - 1} |> do_read(data, status)
   end
 
-  defp do_read(result, <<_::8, data::binary>>) do
-    result |> do_read(data)
+  defp do_read(result, <<_::8, data::binary>>, status) do
+    result |> do_read(data, status)
   end
 
-  defp do_read(result, _error) do
+  defp do_read(result, _error, _status) do
     result
   end
 end
