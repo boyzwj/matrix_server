@@ -138,6 +138,7 @@ defmodule Robot.Worker do
   end
 
   def decode_body(state, <<@proto_reconnect, 1, server_last_recv_index::32-little>>) do
+    Logger.debug("resume session success ...")
     status = @status_online
     last_send_index = server_last_recv_index
     ~M{state|status,last_send_index}
