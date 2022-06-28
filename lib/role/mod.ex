@@ -171,13 +171,22 @@ defmodule Role.Mod do
         Role.Misc.send_to(sid, msg)
       end
 
+      @doc """
+      热更新回调接口
+      """
+      def code_change(old_vsn) do
+        Logger.debug("#{__MODULE__} vsn #{old_vsn} code changed")
+        :ok
+      end
+
       defoverridable on_first_init: 1,
                      on_init: 1,
                      h: 2,
                      secondloop: 2,
                      on_offline: 1,
                      on_terminate: 1,
-                     save: 1
+                     save: 1,
+                     code_change: 1
     end
   end
 end

@@ -69,9 +69,10 @@ defmodule Role.Svr do
     Logger.debug("role.svr [#{role_id}]  start")
     Process.put(:role_id, role_id)
     Process.put(:sid, Role.Misc.sid(role_id))
-    Process.send_after(self(), :secondloop, @loop_interval)
+    :pg.join(__MODULE__, self())
     Role.load_data()
     hook(:init)
+    Process.send_after(self(), :secondloop, @loop_interval)
     now = Util.unixtime()
     last_save_time = now
     last_msg_time = now
@@ -80,12 +81,6 @@ defmodule Role.Svr do
   end
 
   @impl true
-  # def handle_info(:init, state) do
-  #   Role.load_data()
-  #   hook(:init)
-  #   {:noreply, state}
-  # end
-
   def handle_info(:secondloop, state) do
     now = Util.unixtime()
     hook(:secondloop, [now])
@@ -161,6 +156,15 @@ defmodule Role.Svr do
   def terminate(_reason, _state) do
     Role.save_all()
     :ok
+  end
+
+  @impl true
+  def code_change(old_vsn, state, extra) do
+    for mod <- extra, mod != __MODULE__ do
+      apply(mod, :code_change, [old_vsn])
+    end
+
+    {:ok, state}
   end
 
   defp hook(f, args \\ []) do

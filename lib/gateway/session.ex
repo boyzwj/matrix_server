@@ -198,7 +198,7 @@ defmodule GateWay.Session do
 
   defp decode_body(state, <<@proto_ping, _client_time::32-little>> = data) do
     now = Util.unixtime()
-    Logger.debug("receive ping #{now}")
+    # Logger.debug("receive ping #{now}")
     Process.send(self(), {:send_packet, data <> <<now::32-little>>}, [:nosuspend])
     ~M{%Session state|last_heart: now}
   end
