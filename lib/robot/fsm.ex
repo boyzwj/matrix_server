@@ -15,8 +15,7 @@ defmodule Robot.FSM do
 
   def loop(%Worker{id: id, status: @status_init} = state) do
     {addr, port} = Util.rand_list(server_list())
-    # addr = String.to_charlist(System.get_env("ADDR") || "127.0.0.1")
-    # port = String.to_integer(System.get_env("PORT") || "4200")
+
     with {:ok, socket} <- :gen_tcp.connect(addr, port, [:binary, active: true]) do
       Logger.debug("socket connected")
       status = @status_connected
@@ -53,6 +52,7 @@ defmodule Robot.FSM do
 
   def loop(%Worker{status: @status_reconnecting} = state) do
     Logger.debug("socket connected, try resume session")
+    Worker.send_reconnect(state)
     state
   end
 

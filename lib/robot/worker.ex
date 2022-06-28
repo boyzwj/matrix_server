@@ -29,10 +29,10 @@ defmodule Robot.Worker do
   @compress_flag 256
 
   @status_init 0
-  @status_connected 1
+  # @status_connected 1
   @status_online 2
   @status_offline 3
-  @status_reconnecting 4
+  # @status_reconnecting 4
 
   ### =================== API =======================
 
@@ -61,6 +61,16 @@ defmodule Robot.Worker do
   def send_authorize(%Worker{id: id} = state) do
     data = Util.enc_rc4("Robot_#{id}", @base_key)
     state |> do_send(<<@proto_authorize, data::binary>>)
+  end
+
+  def send_reconnect(~M{%Worker last_recv_index, role_id, session_id} = state) do
+    data =
+      Util.enc_rc4(
+        <<last_recv_index::32-little, role_id::64-little, session_id::binary>>,
+        @base_key
+      )
+
+    state |> do_send(<<@proto_reconnect, data::binary>>)
   end
 
   def child_spec(opts) do
@@ -125,6 +135,20 @@ defmodule Robot.Worker do
 
     ~M{%Worker state|role_id,session_id,crypto_key}
     |> FSM.login_ok()
+  end
+
+  def decode_body(state, <<@proto_reconnect, 1, server_last_recv_index::32-little>>) do
+    status = @status_online
+    last_send_index = server_last_recv_index
+    ~M{state|status,last_send_index}
+  end
+
+  def decode_body(state, <<@proto_reconnect, 0>>) do
+    last_send_index = 0
+    last_recv_index = 0
+    recv_buffer = <<>>
+    status = @status_init
+    ~M{state|status,last_send_index,last_recv_index,recv_buffer}
   end
 
   def decode_body(state, <<@proto_ping, client_time::32-little, _server_time::32-little>>) do
