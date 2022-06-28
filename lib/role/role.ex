@@ -11,8 +11,12 @@ defmodule Role do
 
   defp do_load([k, v | tail]) do
     mod = String.to_atom(k)
-    data = v && Poison.decode!(v, as: mod.__struct__)
-    mod.set_data(data)
+
+    if Enum.member?(PB.modules(), mod) do
+      data = v && Poison.decode!(v, as: mod.__struct__)
+      mod.set_data(data)
+    end
+
     do_load(tail)
   end
 
