@@ -7,7 +7,7 @@ defmodule GateWay.ListenerSup do
 
   @impl true
   def init(_opts) do
-    port = String.to_integer(System.get_env("PORT") || "4200")
+    port = String.to_integer(System.get_env("PORT") || "4001")
 
     children = [
       {GateWay.GameListener, port: port}
