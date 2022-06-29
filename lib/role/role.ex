@@ -1,7 +1,7 @@
 defmodule Role do
   use Common
 
-  @moduledoc """
+  @doc """
   上线加载游戏所有数据
   """
   def load_data() do
@@ -23,6 +23,9 @@ defmodule Role do
     do_load(tail)
   end
 
+  @doc """
+  下线保存角色所有数据
+  """
   def save_all() do
     array =
       PB.modules()
