@@ -33,3 +33,7 @@ config :matrix_server,
       strategy: Cluster.Strategy.Gossip
     ]
   ]
+
+config :exsync,
+  addition_dirs: ["/proto"],
+  extensions: [".ex", ".proto"]

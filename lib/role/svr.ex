@@ -1,6 +1,7 @@
 defmodule Role.Svr do
   use GenServer
   use Common
+  import Role.Misc
   defstruct role_id: nil, last_save_time: nil, status: 0, last_msg_time: nil
 
   @status_init 0
@@ -68,7 +69,7 @@ defmodule Role.Svr do
   def init(role_id) do
     Logger.debug("role.svr [#{role_id}]  start")
     Process.put(:role_id, role_id)
-    Process.put(:sid, Role.Misc.sid(role_id))
+    Process.put(:sid, sid(role_id))
     :pg.join(__MODULE__, self())
     Role.load_data()
     hook(:init)

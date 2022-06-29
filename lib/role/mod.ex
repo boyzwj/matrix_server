@@ -5,12 +5,13 @@ defmodule Role.Mod do
   defmacro __using__(_opts) do
     quote do
       use Common
+      import Role.Misc
 
       @doc """
       从Redis加载角色数据
       """
       def load() do
-        data = Redis.hget(Role.Misc.dbkey(), __MODULE__)
+        data = Redis.hget(dbkey(), __MODULE__)
         data && Poison.decode!(data, as: %__MODULE__{})
       end
 
@@ -108,7 +109,7 @@ defmodule Role.Mod do
       defp save(data) do
         with true <- dirty?(),
              data <- Map.from_struct(data),
-             v when is_integer(v) <- Redis.hset(Role.Misc.dbkey(), __MODULE__, data) do
+             v when is_integer(v) <- Redis.hset(dbkey(), __MODULE__, data) do
           set_dirty(false)
           true
         else
@@ -145,30 +146,6 @@ defmodule Role.Mod do
       """
       def dirty?() do
         Process.get({__MODULE__, :dirty}, false)
-      end
-
-      @doc """
-      获取本进程角色ID
-      """
-      def role_id() do
-        Process.get(:role_id)
-      end
-
-      @doc """
-      进程内协议发送接口
-      """
-      def sd(msg) do
-        sid = Process.get(:sid)
-        Role.Misc.send_to(sid, msg)
-      end
-
-      @doc """
-      进程内错误码发送接口
-      """
-      def sd_err(error_code, error_msg \\ nil) do
-        sid = Process.get(:sid)
-        msg = %System.Error2C{error_code: error_code, error_msg: error_msg}
-        Role.Misc.send_to(sid, msg)
       end
 
       @doc """

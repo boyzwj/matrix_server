@@ -1,11 +1,12 @@
 defmodule Role do
   use Common
+  import Role.Misc
 
   @doc """
   上线加载游戏所有数据
   """
   def load_data() do
-    Role.Misc.dbkey()
+    dbkey()
     |> Redis.hgetall()
     |> do_load()
   end
@@ -38,6 +39,6 @@ defmodule Role do
         end
       end)
 
-    Redis.hset_array(Role.Misc.dbkey(), array)
+    Redis.hset_array(dbkey(), array)
   end
 end

@@ -5,7 +5,6 @@ import "common.proto";
 
 
 
-
 //请求大厅信息
 message Info2S{
 
@@ -14,7 +13,8 @@ message Info2S{
 //返回大厅信息
 message Info2C{
     repeated common.Room rooms = 1; //房间列表
-    uint32 lobby_player_num  = 2; //大厅玩家数量
+    uint32 role_num  = 2; //大厅玩家数量
+    uint32 room_id = 3;
 }
 
 

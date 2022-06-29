@@ -5,7 +5,7 @@
 ## 基础
 
 ```bash
-sudo apt-get install curl git cmake net-tools protobuf-compiler sshpass
+sudo apt-get install curl git cmake net-tools protobuf-compiler sshpass inotify-tools
 ```
 
 ## Rust

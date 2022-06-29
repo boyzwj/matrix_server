@@ -41,7 +41,8 @@ defmodule Server.MixProject do
       {:poison, "~> 5.0"},
       {:lz4, "~> 0.2.4", hex: :lz4_erl},
       {:fastglobal, "~> 1.0"},
-      {:manifold, "~> 1.4"}
+      {:manifold, "~> 1.4"},
+      {:exsync, "~> 0.2.4", only: :dev}
     ]
   end
 

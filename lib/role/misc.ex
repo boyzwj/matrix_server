@@ -3,6 +3,13 @@ defmodule Role.Misc do
     Role.Svr.role_id() |> dbkey()
   end
 
+  @doc """
+  获取本进程角色ID
+  """
+  def role_id() do
+    Process.get(:role_id)
+  end
+
   def dbkey(role_id) do
     "role:#{role_id}"
   end
@@ -12,7 +19,7 @@ defmodule Role.Misc do
     |> :global.whereis_name()
   end
 
-  def online(role_id) do
+  def online?(role_id) do
     role_id
     |> sid()
     |> Process.alive?()
@@ -27,14 +34,31 @@ defmodule Role.Misc do
     end
   end
 
-  def send_to(role_id, msg) when is_integer(role_id) do
+  def send_to(msg, role_id) when is_integer(role_id) do
     sid = sid(role_id)
     sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
     :ok
   end
 
-  def send_to(sid, msg) when is_pid(sid) do
+  def send_to(msg, sid) when is_pid(sid) do
     sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
     :ok
+  end
+
+  @doc """
+  进程内协议发送接口
+  """
+  def sd(msg) do
+    sid = Process.get(:sid)
+    send_to(msg, sid)
+  end
+
+  @doc """
+  进程内错误码发送接口
+  """
+  def sd_err(error_code, error_msg \\ nil) do
+    sid = Process.get(:sid)
+    msg = %System.Error2C{error_code: error_code, error_msg: error_msg}
+    send_to(msg, sid)
   end
 end

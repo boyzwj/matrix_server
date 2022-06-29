@@ -14,4 +14,5 @@ message Chat2C{
     uint64 role_id = 2;
     uint32 time = 3;
     string content = 4;
+    string ex = 5;
 }

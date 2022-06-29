@@ -47,7 +47,8 @@ defmodule NodeConfig do
           members: :auto
         ]
       },
-      {Redis.Manager, []}
+      {Redis.Manager, []},
+      {Lobby.Svr, []}
     ] ++ role_inferfaces
   end
 
@@ -98,6 +99,7 @@ defmodule NodeConfig do
         ]
       },
       {Redis.Manager, []},
+      {Lobby.Svr, []},
       {GateWay.ListenerSup, []}
     ] ++ role_inferfaces
   end
