@@ -11,6 +11,13 @@ defmodule Lobby.Sup do
       {Lobby.Svr, []}
     ]
 
+    :ets.new(Room, [
+      :named_table,
+      {:keypos, 1},
+      {:write_concurrency, true},
+      {:read_concurrency, true}
+    ])
+
     Supervisor.init(children, strategy: :one_for_one)
   end
 end

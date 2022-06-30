@@ -12,11 +12,14 @@ defmodule Api.Ctl do
   end
 
   get "api" do
-    content = """
-    <a href = \"api/error\">查看报错</a><br>
-    <a href = \"api/onlinelist\">在线列表</a><br>
-    <a href = \"api/clear_db\">清 档</a><br>
-    """
+    online_num = :pg.get_members(Role.Svr) |> length()
+
+    content =
+      """
+      # 基础功能
+      ### [查看报错](api/error) [在线列表:#{online_num}](api/onlinelist) [房间列表](api/roomlist) [重 启](api/restart) [清 档](api/clear_db)
+      """
+      |> Api.Render.markdown()
 
     conn
     |> put_resp_content_type("text/html")
@@ -25,15 +28,25 @@ defmodule Api.Ctl do
 
   get "api/error" do
     with {:ok, text} <- File.read(Application.get_env(:logger, :error_log)[:path]) do
+      content = Api.Render.markdown(text)
+
       conn
-      |> put_resp_content_type("text/plain")
-      |> send_resp(200, text)
+      |> put_resp_content_type("text/html")
+      |> send_resp(200, content)
     else
       _ ->
         conn
         |> put_resp_content_type("text/plain")
         |> send_resp(200, "no error yet")
     end
+  end
+
+  get "api/restart" do
+    :init.restart()
+
+    conn
+    |> put_resp_content_type("text/plain")
+    |> send_resp(200, "重启中")
   end
 
   get "api/clear_db" do
@@ -45,50 +58,29 @@ defmodule Api.Ctl do
   end
 
   get "api/onlinelist" do
-    content = """
-    <head>
-    <title></title>
-    <style type="text/css">
-    table
-    {
-        border-collapse: collapse;
-        margin: 0 auto;
-        text-align: center;
-    }
-    table td, table th
-    {
-        border: 1px solid #cadeea;
-        color: #666;
-        height: 30px;
-    }
-    table thead th
-    {
-        background-color: #CCE8EB;
-        width: 100px;
-    }
-    table tr:nth-child(odd)
-    {
-        background: #fff;
-    }
-    table tr:nth-child(even)
-    {
-        background: #F5FAFA;
-    }
-    </style>
-    </head>
-    <table width="90%" class="table">
-    <tr><th>RoleID</th><th>PID</th><th>Account</th><th>RoleName</th><th>HeadID</th><th>AvatarID</th></tr>
-    """
+    pids = :pg.get_members(Role.Svr)
 
-    content =
-      for pid <- :pg.get_members(Role.Svr), into: content do
-        role_id = :sys.get_state(pid).role_id
-        ~M{account,role_name,head_id,avatar_id} = Role.Svr.get_data(pid, Role.Mod.Role)
+    text =
+      if pids == [] do
+        "# 当前没有在线"
+      else
+        items =
+          for pid <- pids do
+            role_id = :sys.get_state(pid).role_id
+            ~M{account,role_name,head_id,avatar_id} = Role.Svr.get_data(pid, Role.Mod.Role)
 
-        "<tr><td>#{role_id}</td><td>#{inspect(pid)}</td><td> #{account}</td> <td>#{role_name}</td><td>#{head_id}</td><td>#{avatar_id}</td></tr>"
+            "| [#{role_id}](roleinfo/#{role_id}) | * #{inspect(pid)} * |  <#{account}> | #{role_name} | #{head_id} | #{avatar_id} |"
+          end
+          |> Enum.join("\n")
+
+        """
+        | RoleID |   PID  |  Account  | RoleName | HeadID | AvatarID |
+        |:------:|:------:|:---------:|:--------:|:------:|:--------:|
+        #{items}
+        """
       end
 
-    content <> "</table>"
+    content = Api.Render.markdown(text)
 
     conn
     |> put_resp_content_type("text/html")

@@ -13,6 +13,11 @@ defmodule Lobby.Svr do
     GenServer.call(__MODULE__, {func, args})
   end
 
+  def create_room(args) do
+    {func, _} = __ENV__.function
+    GenServer.call(__MODULE__, {func, args})
+  end
+
   def offline(args) do
     {func, _} = __ENV__.function
     GenServer.call(__MODULE__, {func, args})

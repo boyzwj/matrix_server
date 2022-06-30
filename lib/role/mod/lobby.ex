@@ -20,7 +20,7 @@ defmodule Role.Mod.Lobby do
 
   def h(~M{%__MODULE__ room_id} = state, ~M{%Lobby.CreatRoom2S type, member_cap,password}) do
     if room_id == 0 do
-      {:ok, room_id} = Lobby.Svr.create_room(role_id(), type, member_cap, password)
+      {:ok, room_id} = Lobby.Svr.create_room(~M{role_id(), type, member_cap, password})
       {:ok, ~M{state| room_id}}
     else
       sd_err(0, "已经在房间里了")

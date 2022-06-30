@@ -43,6 +43,7 @@ defmodule Server.MixProject do
       {:fastglobal, "~> 1.0"},
       {:manifold, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
+      {:earmark, "~> 1.4"},
       {:exsync, "~> 0.2.4", only: :dev}
     ]
   end

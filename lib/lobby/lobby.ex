@@ -1,6 +1,5 @@
 defmodule Lobby do
   defstruct roles: %{},
-            rooms: %{},
             role_num: 0,
             last_heart: %{},
             now: 0
@@ -66,9 +65,31 @@ defmodule Lobby do
     |> ok
   end
 
-  defp send_lobby_info(~M{%__MODULE__ rooms,role_num} = state, role_id) do
+  @doc """
+  创建房间
+  """
+  def create_room(
+        ~M{%__MODULE__  } = state,
+        ~M{role_id,type,member_cap,password}
+      ) do
+    state = do_kick_role(state, role_id)
+    {:ok, room_id} = make_room_id()
+    start_room(room_id, role_id, type, member_cap, password)
+    {{:ok, room_id}, state}
+  end
+
+  defp send_lobby_info(~M{%__MODULE__  role_num} = state, role_id) do
+    f = fn {_, %Lobby.Room{} = data}, acc ->
+      [Lobby.Room.to_common(data) | acc]
+    end
+
+    rooms = :ets.foldl(f, [], Room)
     ~M{%Lobby.Info2C rooms, role_num} |> Role.Misc.send_to(role_id)
     state
+  end
+
+  defp start_room(room_id, role_id, type, member_cap, password) do
+    :ok
   end
 
   defp set_last_heart(~M{%__MODULE__ last_heart, now} = state, role_id) do
@@ -94,4 +115,16 @@ defmodule Lobby do
   end
 
   defp ok(state), do: {:ok, state}
+
+  defp make_room_id() do
+    room_id_pool = Process.get({__MODULE__, :room_id_pool})
+
+    with {:ok, room_id_pool, room_id} <- LimitedQueue.pop(room_id_pool) do
+      Process.put({__MODULE__, :room_id_pool}, room_id_pool)
+      {:ok, room_id}
+    else
+      _ ->
+        {:error, :reach_max_room_limit}
+    end
+  end
 end
