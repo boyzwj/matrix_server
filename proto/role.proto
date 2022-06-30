@@ -9,3 +9,11 @@ message Info2S{
 message Info2C{
     common.RoleInfo role_info = 1;
 }
+
+message SetName2S{
+    string name  =  1;
+}
+
+message SetName2C{
+    string name =  1;
+}

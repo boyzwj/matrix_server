@@ -7,6 +7,8 @@ defmodule Authorize do
     else
       role_id = GID.get_role_id()
       Redis.set("account:#{token}", role_id)
+      dbkey = Role.Misc.dbkey(role_id)
+      Redis.hset(dbkey, Role.Mod.Role, %{account: token})
       {:ok, role_id}
     end
   end

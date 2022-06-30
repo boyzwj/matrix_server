@@ -18,7 +18,7 @@ defmodule Role.Mod.Lobby do
     role_id() |> Lobby.Svr.heart()
   end
 
-  def h(~M{%__MODULE_ room_id} = state, ~M{%Lobby.CreatRoom2S type, member_cap,password}) do
+  def h(~M{%__MODULE__ room_id} = state, ~M{%Lobby.CreatRoom2S type, member_cap,password}) do
     if room_id == 0 do
       {:ok, room_id} = Lobby.Svr.create_room(role_id(), type, member_cap, password)
       {:ok, ~M{state| room_id}}

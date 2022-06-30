@@ -35,13 +35,14 @@ defmodule Server.MixProject do
       {:horde, "~> 0.8.7"},
       {:observer_cli, "~> 1.7"},
       {:libcluster, "~> 3.3"},
-      {:ranch, "~> 2.1"},
+      {:ranch, "~> 2.1", override: true},
       {:redix, "~> 1.1"},
       {:castore, ">= 0.0.0"},
       {:poison, "~> 5.0"},
       {:lz4, "~> 0.2.4", hex: :lz4_erl},
       {:fastglobal, "~> 1.0"},
       {:manifold, "~> 1.4"},
+      {:plug_cowboy, "~> 2.5"},
       {:exsync, "~> 0.2.4", only: :dev}
     ]
   end

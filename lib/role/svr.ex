@@ -4,7 +4,7 @@ defmodule Role.Svr do
   import Role.Misc
   defstruct role_id: nil, last_save_time: nil, status: 0, last_msg_time: nil
 
-  @status_init 0
+  # @status_init 0
   @status_online 1
   @status_offline 2
 
@@ -77,7 +77,7 @@ defmodule Role.Svr do
     now = Util.unixtime()
     last_save_time = now
     last_msg_time = now
-    status = @status_init
+    status = @status_online
     {:ok, ~M{%Role.Svr role_id,last_save_time,status,last_msg_time}}
   end
 
