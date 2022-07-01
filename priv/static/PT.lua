@@ -1,5 +1,7 @@
 PT = {
-  role_info2c = 65516,
+  	role_setname2c = 18252,
+	role_setname2s = 17898,
+	role_info2c = 65516,
 	role_info2s = 37482,
 	room_startgame2c = 60718,
 	room_startgame2s = 45263,
@@ -25,7 +27,9 @@ PT = {
 	system_error2c = 18621
 }
 PT_NAMES = {
-  [65516] = [[role.Info2C]],
+  	[18252] = [[role.SetName2C]],
+	[17898] = [[role.SetName2S]],
+	[65516] = [[role.Info2C]],
 	[37482] = [[role.Info2S]],
 	[60718] = [[room.StartGame2C]],
 	[45263] = [[room.StartGame2S]],
@@ -51,7 +55,7 @@ PT_NAMES = {
 	[18621] = [[system.Error2C]]
 }
 PT_PKGS = {
-  chat,
+  	chat,
 	lobby,
 	role,
 	room,

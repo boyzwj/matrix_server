@@ -5,6 +5,10 @@ defmodule PBLua do
   创建协议LUA定义文件
   """
   def create() do
+    File.write!("#{:code.priv_dir(:matrix_server)}/static/PT.lua", content(), [:write])
+  end
+
+  def content() do
     pkgs =
       for mod <- PB.modules() do
         "#{mod}"
@@ -33,20 +37,19 @@ defmodule PBLua do
       end
       |> Enum.join(",\n\t")
 
-    content = template(pt, msg_names, pkgs)
-    File.write!("./proto/PT.lua", content, [:write])
+    template(pt, msg_names, pkgs)
   end
 
   defp template(constdef, type2id, pkgs) do
     """
     PT = {
-      #{constdef}
+      \t#{constdef}
     }
     PT_NAMES = {
-      #{type2id}
+      \t#{type2id}
     }
     PT_PKGS = {
-      #{pkgs}
+      \t#{pkgs}
     }
     """
   end

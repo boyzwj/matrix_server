@@ -8,6 +8,8 @@ defmodule Api.Router do
 
   forward("/api", to: Api.Api)
 
+  forward("/static", to: Api.Static)
+
   match _ do
     conn
     |> put_resp_content_type("text/plain")
