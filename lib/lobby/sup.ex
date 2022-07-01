@@ -8,10 +8,17 @@ defmodule Lobby.Sup do
   @impl true
   def init(_opts) do
     children = [
-      {Lobby.Svr, []}
+      {Lobby.Svr, []},
+      {DynamicSupervisor,
+       [
+         name: Room.Sup,
+         shutdown: 1000,
+         strategy: :one_for_one
+       ]}
     ]
 
     :ets.new(Room, [
+      :public,
       :named_table,
       {:keypos, 1},
       {:write_concurrency, true},

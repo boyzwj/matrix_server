@@ -2,19 +2,10 @@
 
 **高并发高可用的游戏服务器框架*
 
-## Installation
+# [开发环境准备](./document/devenv.md)
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `matrix_server` to your list of dependencies in `mix.exs`:
+# [拓扑结构](./document/topology.md)
 
-```elixir
-def deps do
-  [
-    {:matrix_server, "~> 0.1.0"}
-  ]
-end
-```
+# [通信协议定义](./document/protocal.md)
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/server>.
+# [策划数据表格规范](./document/excel_struct.md)

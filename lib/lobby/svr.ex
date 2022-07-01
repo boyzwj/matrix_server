@@ -1,6 +1,7 @@
 defmodule Lobby.Svr do
   use GenServer
   use Common
+
   @loop_interval 1000
 
   def enter(args) do
@@ -32,7 +33,8 @@ defmodule Lobby.Svr do
   @impl true
   def init(_args) do
     Process.send_after(self(), :secondloop, @loop_interval)
-    {:ok, %Lobby{}}
+    state = Lobby.init()
+    {:ok, state}
   end
 
   @impl true

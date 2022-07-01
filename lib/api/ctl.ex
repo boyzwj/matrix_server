@@ -7,10 +7,11 @@ defmodule Api.Ctl do
 
   get "/" do
     online_num = :pg.get_members(Role.Svr) |> length()
+    room_num = :ets.info(Room, :size)
 
     text = """
     # 基础功能
-    ### [查看报错](/ctl/error) [在线列表:#{online_num}](/ctl/online) [房间列表](/ctl/roomlist) [重 启](/ctl/restart) [清 档](/ctl/clear_db)
+    ### [查看报错](/ctl/error) [在线列表:#{online_num}](/ctl/online) [房间列表:#{room_num}](/ctl/room) [重 启](/ctl/restart) [清 档](/ctl/clear_db)
     """
 
     conn |> send_markdown(text)
@@ -55,7 +56,7 @@ defmodule Api.Ctl do
 
         """
         | RoleID |   PID  |  Account  | RoleName | HeadID | AvatarID |     |
-        |:------:|:------:|:---------:|:--------:|:------:|:--------:|:---:|
+        |:-------|:------:|:---------:|:--------:|:------:|:--------:|----:|
         #{items}
         """
       end
@@ -76,11 +77,28 @@ defmodule Api.Ctl do
           ## RoleID: #{role_id}
           ---------------------
           | Module |   Data   |
-          |:------:|:--------:|
+          |:-------|---------:|
           #{&1}
           """).()
 
     conn |> send_markdown(content)
+  end
+
+  get "room" do
+    text =
+      for {_, ~M{room_id,type,status,create_time,owner,password}} <- :ets.tab2list(Room) do
+        "|#{room_id}|#{owner}|#{type}|#{status}|#{password}|#{create_time}|"
+      end
+      |> Enum.join("\n")
+      |> (&"""
+          # 房间列表
+          ---------------------------
+          |RoomID|Owner| Type |Status|Password|CreateTime|
+          |:-----|:---:|:----:|:----:|:------:|---------:|
+          #{&1}
+          """).()
+
+    conn |> send_markdown(text)
   end
 
   match _ do

@@ -8,6 +8,14 @@ defmodule Lobby do
   use PipeTo.Override
 
   @heart_timeout 10_000
+
+  def init() do
+    queue = LimitedQueue.new(1000)
+    queue = 1..1000 |> Enum.reduce(queue, &LimitedQueue.push(&2, &1))
+    Process.put({__MODULE__, :room_id_pool}, queue)
+    %Lobby{}
+  end
+
   @doc """
   玩家进入游戏大厅
   """
@@ -88,8 +96,11 @@ defmodule Lobby do
     state
   end
 
-  defp start_room(room_id, role_id, type, member_cap, password) do
-    :ok
+  def start_room(room_id, role_id, type, member_cap, password) do
+    DynamicSupervisor.start_child(
+      Room.Sup,
+      {Lobby.Room.Svr, ~M{room_id, role_id, type, member_cap, password}}
+    )
   end
 
   defp set_last_heart(~M{%__MODULE__ last_heart, now} = state, role_id) do
@@ -121,6 +132,7 @@ defmodule Lobby do
 
     with {:ok, room_id_pool, room_id} <- LimitedQueue.pop(room_id_pool) do
       Process.put({__MODULE__, :room_id_pool}, room_id_pool)
+      Logger.debug("create room #{room_id}")
       {:ok, room_id}
     else
       _ ->
