@@ -10,7 +10,7 @@ defmodule Api.Sup do
     port = String.to_integer(System.get_env("API_PORT") || "6001")
 
     children = [
-      {Plug.Cowboy, scheme: :http, plug: Api.Ctl, options: [port: port]}
+      {Plug.Cowboy, scheme: :http, plug: Api.Router, options: [port: port]}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)

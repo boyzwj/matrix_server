@@ -43,6 +43,10 @@ defmodule Role.Svr do
     call(role_id, {:apply, mod, :get_data, []})
   end
 
+  def get_all_data(role_id) do
+    call(role_id, :get_all_data)
+  end
+
   def role_id() do
     Process.get(:role_id)
   end
@@ -150,6 +154,15 @@ defmodule Role.Svr do
   @impl true
   def handle_call({:apply, mod, f, args}, _from, state) do
     reply = :erlang.apply(mod, f, args)
+    {:reply, reply, state}
+  end
+
+  def handle_call(:get_all_data, _from, state) do
+    reply =
+      for mod <- PB.modules() do
+        {mod, mod.get_data() |> Map.from_struct()}
+      end
+
     {:reply, reply, state}
   end
 
