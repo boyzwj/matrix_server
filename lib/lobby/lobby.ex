@@ -1,6 +1,5 @@
 defmodule Lobby do
   defstruct roles: %{},
-            role_num: 0,
             last_heart: %{},
             now: 0
 
@@ -10,9 +9,10 @@ defmodule Lobby do
   @heart_timeout 10_000
 
   def init() do
-    queue = LimitedQueue.new(1000)
-    queue = 1..1000 |> Enum.reduce(queue, &LimitedQueue.push(&2, &1))
-    Process.put({__MODULE__, :room_id_pool}, queue)
+    queue = LimitedQueue.new(10_000)
+    queue = 1001..2000 |> Enum.reduce(queue, &LimitedQueue.push(&2, &1))
+    id_start = 2001
+    Process.put({__MODULE__, :room_id_pool}, {id_start, queue})
     %Lobby{}
   end
 
@@ -86,17 +86,17 @@ defmodule Lobby do
     {{:ok, room_id}, state}
   end
 
-  defp send_lobby_info(~M{%__MODULE__  role_num} = state, role_id) do
+  defp send_lobby_info(~M{%__MODULE__  } = state, role_id) do
     f = fn {_, %Lobby.Room{} = data}, acc ->
       [Lobby.Room.to_common(data) | acc]
     end
 
     rooms = :ets.foldl(f, [], Room)
-    ~M{%Lobby.Info2C rooms, role_num} |> Role.Misc.send_to(role_id)
+    ~M{%Lobby.Info2C rooms } |> Role.Misc.send_to(role_id)
     state
   end
 
-  def start_room(room_id, role_id, type, member_cap, password) do
+  defp start_room(room_id, role_id, type, member_cap, password) do
     DynamicSupervisor.start_child(
       Room.Sup,
       {Lobby.Room.Svr, ~M{room_id, role_id, type, member_cap, password}}
@@ -118,25 +118,26 @@ defmodule Lobby do
     |> kick_roles(t)
   end
 
-  defp do_kick_role(~M{%__MODULE__ roles,role_num,last_heart} = state, role_id) do
+  defp do_kick_role(~M{%__MODULE__ roles,last_heart} = state, role_id) do
     roles = Map.delete(roles, role_id)
     last_heart = Map.delete(last_heart, role_id)
-    role_num = role_num - 1
-    ~M{state |  roles,role_num,last_heart}
+    ~M{state |  roles,last_heart}
   end
 
   defp ok(state), do: {:ok, state}
 
   defp make_room_id() do
-    room_id_pool = Process.get({__MODULE__, :room_id_pool})
+    {id_start, pool} = Process.get({__MODULE__, :room_id_pool})
 
-    with {:ok, room_id_pool, room_id} <- LimitedQueue.pop(room_id_pool) do
-      Process.put({__MODULE__, :room_id_pool}, room_id_pool)
+    with {:ok, pool, room_id} <- LimitedQueue.pop(pool) do
+      Process.put({__MODULE__, :room_id_pool}, {id_start, pool})
       Logger.debug("create room #{room_id}")
       {:ok, room_id}
     else
       _ ->
-        {:error, :reach_max_room_limit}
+        room_id = id_start
+        Process.put({__MODULE__, :room_id_pool}, {id_start + 1, pool})
+        {:ok, room_id}
     end
   end
 end

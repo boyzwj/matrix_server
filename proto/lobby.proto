@@ -13,8 +13,7 @@ message Info2S{
 //返回大厅信息
 message Info2C{
     repeated common.Room rooms = 1; //房间列表
-    uint32 role_num  = 2; //大厅玩家数量
-    uint32 room_id = 3;
+    uint32 room_id = 2;  //所在房间ID
 }
 
 
@@ -43,7 +42,8 @@ message CreatRoom2S{
 
 
 //创建房间成功
-message CreatRoom2C{   
+message CreatRoom2C{
+    uint32 room_id = 1;  
 }
 
 

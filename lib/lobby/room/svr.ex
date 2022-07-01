@@ -1,7 +1,7 @@
 defmodule Lobby.Room.Svr do
   use GenServer
   use Common
-  @loop_interval 5000
+  @loop_interval 10_000
 
   def pid(room_id) do
     :global.whereis_name(name(room_id))
@@ -42,6 +42,18 @@ defmodule Lobby.Room.Svr do
 
   @impl true
   def handle_info(:secondloop, state) do
+    Process.send_after(self(), :secondloop, @loop_interval)
+    state = Lobby.Room.secondloop(state)
     {:noreply, state}
+  end
+
+  def handle_info(:shutdown, state) do
+    {:stop, :normal, state}
+  end
+
+  @impl true
+  def terminate(_reason, ~M{room_id} = _state) do
+    :ets.delete(Room, room_id)
+    :ok
   end
 end

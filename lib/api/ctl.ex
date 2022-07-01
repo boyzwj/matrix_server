@@ -11,6 +11,7 @@ defmodule Api.Ctl do
 
     text = """
     # 基础功能
+    ------------
     ### [查看报错](/ctl/error) [在线列表:#{online_num}](/ctl/online) [房间列表:#{room_num}](/ctl/room) [重 启](/ctl/restart) [清 档](/ctl/clear_db)
     """
 
@@ -18,12 +19,20 @@ defmodule Api.Ctl do
   end
 
   get "error" do
-    with {:ok, text} <- File.read(Application.get_env(:logger, :error_log)[:path]) do
-      conn |> send_markdown(text)
-    else
-      _ ->
-        conn |> send_markdown("# 暂时没有错误日志")
-    end
+    text =
+      with {:ok, data} <- File.read(Application.get_env(:logger, :error_log)[:path]) do
+        data
+      else
+        _ ->
+          "## 暂时没有错误日志"
+      end
+      |> (&"""
+          # 错误日志
+          ------
+             #{&1}
+          """).()
+
+    conn |> send_markdown(text)
   end
 
   get "restart" do
@@ -43,7 +52,11 @@ defmodule Api.Ctl do
 
     text =
       if pids == [] do
-        "# 当前没有在线"
+        """
+        # 在线列表
+        ----------
+        ## 当前没有在线
+        """
       else
         items =
           for pid <- pids do
@@ -55,6 +68,8 @@ defmodule Api.Ctl do
           |> Enum.join("\n")
 
         """
+        # 在线列表
+        ----------
         | RoleID |   PID  |  Account  | RoleName | HeadID | AvatarID |     |
         |:-------|:------:|:---------:|:--------:|:------:|:--------:|----:|
         #{items}
@@ -86,15 +101,16 @@ defmodule Api.Ctl do
 
   get "room" do
     text =
-      for {_, ~M{room_id,type,status,create_time,owner,password}} <- :ets.tab2list(Room) do
-        "|#{room_id}|#{owner}|#{type}|#{status}|#{password}|#{create_time}|"
+      for {_, ~M{room_id,type,status,create_time,owner,password,member_num}} <-
+            :ets.tab2list(Room) do
+        "|#{room_id}|#{member_num}|#{owner}|#{type}|#{status}|#{password}|#{create_time}|"
       end
       |> Enum.join("\n")
       |> (&"""
           # 房间列表
           ---------------------------
-          |RoomID|Owner| Type |Status|Password|CreateTime|
-          |:-----|:---:|:----:|:----:|:------:|---------:|
+          |RoomID|MemberNum|Owner| Type |Status|Password|CreateTime|
+          |:----:|:-------:|:---:|:----:|:----:|:------:|---------:|
           #{&1}
           """).()
 

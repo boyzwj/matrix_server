@@ -72,10 +72,6 @@ data = [0::byte]
 
 ***小数据包（byte_size <256）采用RC4加密***
 
-```
-data = [compress_flag::8, body::binary]
-```
-
 * 协议包加密采用RC4算法, crypto_key 的生成法则是    MD5([session_id ,  role_id  ,  gamekey])
 
 * C2S  
