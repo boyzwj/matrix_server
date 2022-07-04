@@ -99,7 +99,7 @@ defmodule Lobby do
   defp start_room(room_id, role_id, type, member_cap, password) do
     DynamicSupervisor.start_child(
       Room.Sup,
-      {Lobby.Room.Svr, ~M{room_id, role_id, type, member_cap, password}}
+      {Lobby.Room.Svr, [room_id, role_id, type, member_cap, password]}
     )
   end
 

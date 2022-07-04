@@ -16,7 +16,7 @@ defmodule Lobby.Room.Svr do
     # {:via, Horde.Registry, {Matrix.RoleRegistry, role_id}}
   end
 
-  def child_spec(~M{room_id} = args) do
+  def child_spec([room_id | _] = args) do
     %{
       id: "Room_#{room_id}",
       start: {__MODULE__, :start_link, [args]},
@@ -25,12 +25,12 @@ defmodule Lobby.Room.Svr do
     }
   end
 
-  def start_link(~M{room_id} = args) do
+  def start_link([room_id | _] = args) do
     GenServer.start_link(__MODULE__, args, name: via(room_id))
   end
 
   @impl true
-  def init(~M{room_id, role_id, type, member_cap, password}) do
+  def init([room_id, role_id, type, member_cap, password]) do
     Logger.debug("Room.Svr [#{room_id}]  start")
     :pg.join(__MODULE__, self())
     create_time = Util.unixtime()

@@ -84,16 +84,20 @@ defmodule Api.Ctl do
           for pid <- pids do
             role_id = :sys.get_state(pid).role_id
             ~M{account,role_name,head_id,avatar_id} = Role.Svr.get_data(pid, Role.Mod.Role)
+            sid = Role.Misc.sid(role_id)
+            ~M{session_id,crypto_key} = :sys.get_state(sid)
 
-            "|#{role_id}| * #{inspect(pid)} * |  <#{account}> | #{role_name} | #{head_id} | #{avatar_id} | [* 查看 *](/ctl/online/#{role_id}) |"
+            [role_id, pid, session_id, crypto_key, account, role_name, head_id, avatar_id]
+            |> table_row()
+            |> (&"#{&1} [* 查看 *](/ctl/online/#{role_id}) |").()
           end
           |> Enum.join("\n")
 
         """
         # 在线列表
         ----------
-        | RoleID |   PID  |  Account  | RoleName | HeadID | AvatarID |     |
-        |:-------|:------:|:---------:|:--------:|:------:|:--------:|----:|
+        | RoleID |   PID  | SessionID | CryptoKey | Account  | RoleName | HeadID | AvatarID |     |
+        |:-------|:------:|:---------:|:---------:|:--------:|:--------:|:------:|:--------:|----:|
         #{items}
         """
       end
@@ -125,7 +129,8 @@ defmodule Api.Ctl do
     text =
       for {_, ~M{room_id,type,status,create_time,owner,password,member_num}} <-
             :ets.tab2list(Room) do
-        "|#{room_id}|#{member_num}|#{owner}|#{type}|#{status}|#{password}|#{create_time}|"
+        [room_id, type, status, create_time, owner, password, member_num]
+        |> table_row()
       end
       |> Enum.join("\n")
       |> (&"""
@@ -159,4 +164,21 @@ defmodule Api.Ctl do
     # [返回](/ctl)
     """
   end
+
+  defp table_row(l) when is_list(l) do
+    l
+    |> Enum.map(&parse_column(&1))
+    |> Enum.join(" | ")
+    |> (&"|#{&1}|").()
+  end
+
+  defp parse_column(a) when is_binary(a) do
+    if String.printable?(a) do
+      "#{a}"
+    else
+      "#{inspect(a)}"
+    end
+  end
+
+  defp parse_column(a), do: "#{inspect(a)}"
 end

@@ -3,7 +3,7 @@ defmodule Lobby.Room do
             type: 0,
             owner: nil,
             status: 0,
-            roles: %{},
+            positions: %{},
             member_num: 0,
             member_cap: 0,
             create_time: 0,

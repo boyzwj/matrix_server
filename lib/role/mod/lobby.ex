@@ -30,6 +30,10 @@ defmodule Role.Mod.Lobby do
     end
   end
 
+  def h(~M{%__MODULE__ } = state, ~M{%Lobby.JoinRoom2S room_id,password}) do
+    :ok
+  end
+
   @doc """
   下线回调
   """

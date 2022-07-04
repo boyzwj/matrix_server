@@ -1,5 +1,5 @@
 defmodule Role.Mod.Role do
-  defstruct account: "", role_name: "", head_id: 1, avatar_id: 1
+  defstruct account: "", role_name: "", gender: 1, head_id: 1, avatar_id: 1, grading: 1
   use Role.Mod
 
   def h(state, ~M{%Role.Info2S }) do
