@@ -4,17 +4,22 @@ defmodule Lobby.Svr do
 
   @loop_interval 1000
 
-  def enter(args) do
+  def get_room_info(args) do
     {func, _} = __ENV__.function
     GenServer.call(__MODULE__, {func, args})
   end
 
-  def heart(args) do
+  def get_room_list(args) do
     {func, _} = __ENV__.function
     GenServer.call(__MODULE__, {func, args})
   end
 
   def create_room(args) do
+    {func, _} = __ENV__.function
+    GenServer.call(__MODULE__, {func, args})
+  end
+
+  def quick_join(args) do
     {func, _} = __ENV__.function
     GenServer.call(__MODULE__, {func, args})
   end

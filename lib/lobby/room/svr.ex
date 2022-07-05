@@ -3,6 +3,38 @@ defmodule Lobby.Room.Svr do
   use Common
   @loop_interval 10_000
 
+  @doc """
+  踢人
+  """
+  def kick(room_id, args) do
+    {func, _} = __ENV__.function
+    cast(room_id, {func, args})
+  end
+
+  @doc """
+  换位置
+  """
+  def change_pos(room_id, args) do
+    {func, _} = __ENV__.function
+    cast(room_id, {func, args})
+  end
+
+  @doc """
+  退出房间
+  """
+  def exit_room(room_id, args) do
+    {func, _} = __ENV__.function
+    call(room_id, {func, args})
+  end
+
+  @doc """
+  开始游戏
+  """
+  def start_game(room_id, args) do
+    {func, _} = __ENV__.function
+    call(room_id, {func, args})
+  end
+
   def pid(room_id) do
     :global.whereis_name(name(room_id))
   end
@@ -14,6 +46,26 @@ defmodule Lobby.Room.Svr do
   def via(room_id) do
     {:global, name(room_id)}
     # {:via, Horde.Registry, {Matrix.RoleRegistry, role_id}}
+  end
+
+  def cast(room_id, msg) when is_integer(room_id) do
+    room_id
+    |> via()
+    |> GenServer.cast(msg)
+  end
+
+  def cast(pid, msg) when is_pid(pid) do
+    pid |> GenServer.cast(msg)
+  end
+
+  def call(room_id, msg) when is_integer(room_id) do
+    room_id
+    |> via()
+    |> GenServer.call(msg)
+  end
+
+  def call(pid, msg) when is_pid(pid) do
+    pid |> GenServer.call(msg)
   end
 
   def child_spec([room_id | _] = args) do
