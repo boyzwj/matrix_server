@@ -25,11 +25,18 @@ defmodule Lobby do
   """
   def create_room(
         ~M{%__MODULE__  } = state,
-        ~M{role_id,type,member_cap,password}
+        args
       ) do
     {:ok, room_id} = make_room_id()
-    start_room(room_id, role_id, type, member_cap, password)
-    {{:ok, room_id}, state}
+    args = [room_id | args]
+
+    with {:ok, _pid} <- DynamicSupervisor.start_child(Room.Sup, {Lobby.Room.Svr, args}) do
+      {{:ok, room_id}, state}
+    else
+      _ ->
+        recycle_room_id(room_id)
+        throw("房间创建失败")
+    end
   end
 
   defp send_rooms_info(~M{%__MODULE__  } = state, role_id) do
@@ -40,13 +47,6 @@ defmodule Lobby do
     rooms = :ets.foldl(f, [], Room)
     ~M{%Room.List2C rooms} |> Role.Misc.send_to(role_id)
     state
-  end
-
-  defp start_room(room_id, role_id, type, member_cap, password) do
-    DynamicSupervisor.start_child(
-      Room.Sup,
-      {Lobby.Room.Svr, [room_id, role_id, type, member_cap, password]}
-    )
   end
 
   defp ok(state), do: {:ok, state}
@@ -64,5 +64,11 @@ defmodule Lobby do
         Process.put({__MODULE__, :room_id_pool}, {id_start + 1, pool})
         {:ok, room_id}
     end
+  end
+
+  defp recycle_room_id(room_id) do
+    {id_start, pool} = Process.get({__MODULE__, :room_id_pool})
+    pool = LimitedQueue.push(pool, room_id)
+    Process.put({__MODULE__, :room_id_pool}, {id_start, pool})
   end
 end
