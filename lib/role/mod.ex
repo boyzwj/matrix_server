@@ -6,6 +6,7 @@ defmodule Role.Mod do
     quote do
       use Common
       import Role.Misc
+      alias __MODULE__, as: M
 
       @doc """
       从Redis加载角色数据
@@ -44,19 +45,30 @@ defmodule Role.Mod do
       协议处理宏
       """
       def h(msg) do
-        with {:ok, %__MODULE__{} = data} <- get_data() |> h(msg) do
-          set_data(data)
-        else
-          :ok ->
-            :ignore
+        try do
+          with {:ok, %__MODULE__{} = data} <- get_data() |> h(msg) do
+            set_data(data)
+          else
+            :ok ->
+              :ignore
 
-          :ignore ->
-            :ignore
+            :ignore ->
+              :ignore
 
-          error ->
-            Logger.warn(
-              "handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}, expect end with {:ok, newstate}, :ok , :ignore"
-            )
+            error ->
+              Logger.warn(
+                "handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}, expect end with {:ok, newstate}, :ok , :ignore"
+              )
+          end
+        catch
+          x when is_integer(x) ->
+            sd_err(x)
+
+          x when is_bitstring(x) ->
+            sd_err(0, x)
+
+          x ->
+            sd_err(0, inspect(x))
         end
       end
 

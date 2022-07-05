@@ -1,7 +1,6 @@
 defmodule Lobby.Room.Svr do
   use GenServer
   use Common
-  @loop_interval 10_000
 
   @doc """
   踢人
@@ -83,24 +82,45 @@ defmodule Lobby.Room.Svr do
 
   @impl true
   def init([room_id, role_id, type, member_cap, password]) do
-    Logger.debug("Room.Svr [#{room_id}]  start")
-    :pg.join(__MODULE__, self())
-    create_time = Util.unixtime()
-    state = ~M{%Lobby.Room  room_id,type,member_cap,password,create_time,owner: role_id}
-    :ets.insert(Room, {room_id, state})
-    Process.send_after(self(), :secondloop, @loop_interval)
+    state = Lobby.Room.init([room_id, role_id, type, member_cap, password])
     {:ok, state}
   end
 
   @impl true
   def handle_info(:secondloop, state) do
-    Process.send_after(self(), :secondloop, @loop_interval)
     state = Lobby.Room.secondloop(state)
     {:noreply, state}
   end
 
   def handle_info(:shutdown, state) do
     {:stop, :normal, state}
+  end
+
+  @impl true
+  def handle_cast({func, args}, state) do
+    try do
+      {:ok, state} = :erlang.apply(Lobby.Room, func, [state, args])
+      Lobby.Room.set_dirty(true)
+      {:noreply, state}
+    catch
+      error ->
+        Logger.error(
+          "handle cast error Fun: #{func} args: #{inspect(args)}, error: #{inspect(error)}"
+        )
+
+        {:noreply, state}
+    end
+  end
+
+  @impl true
+  def handle_call({func, args}, _From, state) do
+    try do
+      {reply, state} = apply(Lobby.Room, func, [state, args])
+      {:reply, reply, state}
+    catch
+      error ->
+        {:reply, error, state}
+    end
   end
 
   @impl true

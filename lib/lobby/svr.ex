@@ -44,8 +44,13 @@ defmodule Lobby.Svr do
 
   @impl true
   def handle_call({func, arg}, _from, %Lobby{} = state) do
-    {reply, state} = apply(Lobby, func, [state, arg])
-    {:reply, reply, state}
+    try do
+      {reply, state} = apply(Lobby, func, [state, arg])
+      {:reply, reply, state}
+    catch
+      error ->
+        {:reply, error, state}
+    end
   end
 
   def handle_call(msg, _from, state) do
@@ -55,7 +60,18 @@ defmodule Lobby.Svr do
   end
 
   @impl true
-  def handle_cast(msg, %Lobby{} = state) do
+  def handle_cast({func, arg}, %Lobby{} = state) do
+    try do
+      state = apply(Lobby, func, [state, arg])
+      {:noreply, state}
+    catch
+      error ->
+        Logger.error("handle cast error : #{error}")
+        {:noreply, state}
+    end
+  end
+
+  def handle_cast(msg, state) do
     Logger.warn("unhandle cast : #{msg}")
     {:noreply, state}
   end

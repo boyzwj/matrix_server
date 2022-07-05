@@ -3,7 +3,7 @@ defmodule Role.Mod.Role do
   use Role.Mod
 
   def h(state, ~M{%Role.Info2S }) do
-    with ~M{%__MODULE__ } = data <- state do
+    with ~M{%M } = data <- state do
       role_info = to_common(data)
       ~M{%Role.Info2C role_info} |> sd()
     else
