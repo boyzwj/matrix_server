@@ -5,7 +5,7 @@ defmodule Lobby.Room.Svr do
   @doc """
   加入房间
   """
-  def join_room(room_id, args) do
+  def join(room_id, args) do
     {func, _} = __ENV__.function
     call(room_id, {func, args})
   end
@@ -56,9 +56,12 @@ defmodule Lobby.Room.Svr do
   end
 
   def cast(room_id, msg) when is_integer(room_id) do
-    room_id
-    |> via()
-    |> GenServer.cast(msg)
+    with pid when is_pid(pid) <- name(room_id) |> :global.whereis_name() do
+      cast(pid, msg)
+    else
+      _ ->
+        {:error, :room_not_exist}
+    end
   end
 
   def cast(pid, msg) when is_pid(pid) do
@@ -66,9 +69,12 @@ defmodule Lobby.Room.Svr do
   end
 
   def call(room_id, msg) when is_integer(room_id) do
-    room_id
-    |> via()
-    |> GenServer.call(msg)
+    with pid when is_pid(pid) <- name(room_id) |> :global.whereis_name() do
+      call(pid, msg)
+    else
+      _ ->
+        {:error, :room_not_exist}
+    end
   end
 
   def call(pid, msg) when is_pid(pid) do
@@ -101,6 +107,7 @@ defmodule Lobby.Room.Svr do
   end
 
   def handle_info(:shutdown, state) do
+    Logger.debug("room shut down")
     {:stop, :normal, state}
   end
 
@@ -135,6 +142,7 @@ defmodule Lobby.Room.Svr do
   @impl true
   def terminate(_reason, ~M{room_id} = _state) do
     :ets.delete(Room, room_id)
+    Lobby.Svr.recycle_room(room_id)
     :ok
   end
 end

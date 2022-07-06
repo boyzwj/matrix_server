@@ -34,6 +34,8 @@ defmodule Role.Misc do
     end
   end
 
+  def send_to(_msg, nil), do: :ignore
+
   def send_to(msg, role_id) when is_integer(role_id) do
     sid = sid(role_id)
     sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])

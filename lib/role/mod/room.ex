@@ -21,7 +21,7 @@ defmodule Role.Mod.Room do
 
   # 请求房间列表
   def h(~M{%M mode,map_id}, ~M{%Room.List2S }) do
-    Lobby.Svr.get_room_list([mode, map_id])
+    Lobby.Svr.get_room_list([role_id(), mode, map_id])
     :ok
   end
 
@@ -36,10 +36,10 @@ defmodule Role.Mod.Room do
     end
   end
 
-  def h(~M{%M room_id} = state, ~M{%Room.Join2S room_id,password}) do
-    if room_id != 0, do: throw("已经在房间里了")
+  def h(~M{%M room_id: cur_room_id} = state, ~M{%Room.Join2S room_id,password}) do
+    if cur_room_id != 0, do: throw("已经在房间里了")
 
-    with :ok <- Lobby.Room.Svr.join_room(room_id, [role_id(), password]) do
+    with :ok <- Lobby.Room.Svr.join(room_id, [role_id(), password]) do
       {:ok, ~M{state|room_id}}
     else
       {:error, error} -> throw(error)
@@ -95,12 +95,8 @@ defmodule Role.Mod.Room do
     end
   end
 
-  def set_room_id(room_id) do
-    with %M{} = data <- get_data() do
-      set_data(~M{%M data| room_id})
-    else
-      _ ->
-        Logger.warn("role room data is unexpected ...")
-    end
+  def on_offline(~M{%M room_id} = state) do
+    Lobby.Room.Svr.exit_room(room_id, role_id())
+    ~M{state | room_id:  0} |> set_data()
   end
 end

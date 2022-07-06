@@ -29,6 +29,11 @@ defmodule Lobby.Svr do
     GenServer.call(__MODULE__, {func, args})
   end
 
+  def recycle_room(args) do
+    {func, _} = __ENV__.function
+    GenServer.call(__MODULE__, {func, args})
+  end
+
   ### API #####
 
   def start_link(_opts) do

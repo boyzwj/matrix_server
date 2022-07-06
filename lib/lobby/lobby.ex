@@ -4,6 +4,8 @@ defmodule Lobby do
   use Common
   use PipeTo.Override
 
+  alias __MODULE__, as: M
+
   def init() do
     queue = LimitedQueue.new(10_000)
     queue = 1001..2000 |> Enum.reduce(queue, &LimitedQueue.push(&2, &1))
@@ -16,7 +18,7 @@ defmodule Lobby do
   大厅每秒循环，踢掉超时玩家
   """
 
-  def secondloop(~M{%__MODULE__ } = state) do
+  def secondloop(~M{%M } = state) do
     state
   end
 
@@ -24,7 +26,7 @@ defmodule Lobby do
   创建房间
   """
   def create_room(
-        ~M{%__MODULE__  } = state,
+        ~M{%M  } = state,
         args
       ) do
     {:ok, room_id} = make_room_id()
@@ -39,14 +41,24 @@ defmodule Lobby do
     end
   end
 
-  defp send_rooms_info(~M{%__MODULE__  } = state, role_id) do
-    f = fn {_, %Lobby.Room{} = data}, acc ->
-      [Lobby.Room.to_common(data) | acc]
+  def get_room_list(~M{%M } = state, [role_id, select_mode, select_map_id]) do
+    f = fn {_, ~M{%Lobby.Room mode,map_id} = data}, acc ->
+      if (select_mode == 0 || select_mode == mode) &&
+           (select_map_id == 0 || select_map_id == map_id) do
+        [Lobby.Room.to_common(data) | acc]
+      else
+        acc
+      end
     end
 
     rooms = :ets.foldl(f, [], Room)
     ~M{%Room.List2C rooms} |> Role.Misc.send_to(role_id)
-    state
+    state |> ok()
+  end
+
+  def recycle_room(state, room_id) do
+    recycle_room_id(room_id)
+    state |> ok()
   end
 
   defp ok(state), do: {:ok, state}

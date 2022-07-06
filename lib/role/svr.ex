@@ -1,10 +1,10 @@
 defmodule Role.Svr do
   use GenServer
   use Common
-  import Role.Misc
+
   defstruct role_id: nil, last_save_time: nil, status: 0, last_msg_time: nil
 
-  # @status_init 0
+  @status_init 0
   @status_online 1
   @status_offline 2
 
@@ -71,21 +71,27 @@ defmodule Role.Svr do
   ## ===CALLBACK====
   @impl true
   def init(role_id) do
+    Process.send_after(self(), :init, @loop_interval)
     Logger.debug("role.svr [#{role_id}]  start")
     Process.put(:role_id, role_id)
-    Process.put(:sid, sid(role_id))
-    :pg.join(__MODULE__, self())
     Role.load_data()
-    hook(:init)
-    Process.send_after(self(), :secondloop, @loop_interval)
     now = Util.unixtime()
     last_save_time = now
     last_msg_time = now
-    status = @status_online
+    status = @status_init
     {:ok, ~M{%Role.Svr role_id,last_save_time,status,last_msg_time}}
   end
 
   @impl true
+  def handle_info(:init, ~M{%Role.Svr role_id} = state) do
+    Process.put(:sid, Role.Misc.sid(role_id))
+    hook(:init)
+    Process.send_after(self(), :secondloop, @loop_interval)
+    :pg.join(__MODULE__, self())
+    status = @status_online
+    {:noreply, ~M{%Role.Svr state|status}}
+  end
+
   def handle_info(:secondloop, state) do
     now = Util.unixtime()
     hook(:secondloop, [now])
@@ -193,7 +199,10 @@ defmodule Role.Svr do
         end
       catch
         kind, reason ->
-          Logger.error("#{mod} [#{f}] error !! #{kind} , #{reason}, #{inspect(__STACKTRACE__)} ")
+          Logger.error(
+            "#{mod} [#{f}] error !! #{inspect({kind, reason})} , #{inspect(__STACKTRACE__)} "
+          )
+
           false
       end
     end

@@ -1,9 +1,10 @@
 defmodule Dsa do
   use Common
-  defstruct resources: nil, workers: %{}, now: nil
+  defstruct resources: nil, port_from: 13_000, workers: %{}, now: nil
 
   def init() do
-    %Dsa{}
+    resources = LimitedQueue.new(10_000)
+    %Dsa{resources: resources}
   end
 
   def secondloop(state) do

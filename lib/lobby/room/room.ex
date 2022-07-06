@@ -1,8 +1,8 @@
 defmodule Lobby.Room do
   defstruct room_id: 0,
-            mode: 0,
-            owner: nil,
+            owner_id: nil,
             status: 0,
+            mode: 0,
             positions: %{},
             member_num: 0,
             map_id: 0,
@@ -17,12 +17,16 @@ defmodule Lobby.Room do
   @idle_time 3_600
   @positions [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-  def init([room_id, owner, mode, map_id, password]) do
-    Logger.debug("Room.Svr [#{room_id}]  start")
+  def init([room_id, owner_id, mode, map_id, password]) do
+    Logger.debug("Room.Svr room_id: [#{room_id}] owenr_id: [#{owner_id}]  start")
     :pg.join(M, self())
     create_time = Util.unixtime()
     last_game_time = create_time
-    state = ~M{%M room_id,mode,map_id,password,create_time,last_game_time,owner}
+
+    state =
+      ~M{%M room_id,mode,map_id,password,create_time,last_game_time,owner_id}
+      |> do_join(owner_id)
+
     :ets.insert(Room, {room_id, state})
     Process.send_after(self(), :secondloop, @loop_interval)
     state
@@ -51,8 +55,8 @@ defmodule Lobby.Room do
     state
   end
 
-  def kick(~M{%M owner,positions,member_num} = state, [f_role_id, t_role_id]) do
-    if f_role_id != owner do
+  def kick(~M{%M owner_id,positions,member_num} = state, [f_role_id, t_role_id]) do
+    if f_role_id != owner_id do
       throw("你不是房主")
     end
 
@@ -67,7 +71,8 @@ defmodule Lobby.Room do
 
     member_num = member_num - 1
     del_role_id(t_role_id)
-    {:ok, ~M{state|positions,member_num}}
+    %Room.Kick2C{role_id: t_role_id} |> broad_cast()
+    ~M{state|positions,member_num} |> sync() |> ok()
   end
 
   def join(~M{%M room_id,password,member_num} = state, [role_id, tpassword]) do
@@ -75,7 +80,7 @@ defmodule Lobby.Room do
     if member_num >= length(@positions), do: throw("房间已满")
     state = do_join(state, role_id)
     ~M{%Room.Join2C role_id, room_id} |> broad_cast()
-    state
+    state |> sync() |> ok()
   end
 
   defp do_join(~M{%M positions, member_num} = state, role_id) do
@@ -86,7 +91,16 @@ defmodule Lobby.Room do
     ~M{state | member_num ,positions}
   end
 
-  def exit_room(~M{%M positions,member_num} = state, role_id) do
+  @doc """
+  开始游戏回调
+  """
+  def start_game(~M{%M owner_id,mode, map_id} = state, role_id) do
+    if role_id != owner_id, do: throw("你不是房主")
+    Dsa.Svr.start_game([mode, map_id, role_ids()])
+    state |> ok()
+  end
+
+  def exit_room(~M{%M positions,member_num,owner_id} = state, role_id) do
     if not :ordsets.is_element(role_id, role_ids()) do
       {:ok, state}
     else
@@ -98,7 +112,19 @@ defmodule Lobby.Room do
       member_num = member_num - 1
       del_role_id(role_id)
       ~M{%Room.Exit2C role_id} |> broad_cast()
-      {:ok, ~M{state| positions,member_num}}
+
+      owner_id =
+        if role_id == owner_id do
+          role_ids() |> Util.rand_list() || 0
+        else
+          owner_id
+        end
+
+      if member_num == 0 do
+        self() |> Process.send(:shutdown, [:nosuspend])
+      end
+
+      ~M{state| positions,member_num,owner_id} |> sync() |> ok()
     end
   end
 
@@ -134,6 +160,16 @@ defmodule Lobby.Room do
     |> set_role_ids()
   end
 
+  defp sync(~M{%M room_id, owner_id,mode,map_id, positions} = state) do
+    members =
+      for {k, v} <- positions, not is_nil(v) do
+        %Room.Member{role_id: v, position: k}
+      end
+
+    ~M{%Room.Update2C room_id,owner_id,map_id,mode,members} |> broad_cast()
+    state
+  end
+
   defp del_role_id(role_id) do
     :ordsets.del_element(role_id, role_ids())
     |> set_role_ids()
@@ -143,4 +179,6 @@ defmodule Lobby.Room do
     role_ids()
     |> Enum.each(&Role.Misc.send_to(msg, &1))
   end
+
+  defp ok(state), do: {:ok, state}
 end
