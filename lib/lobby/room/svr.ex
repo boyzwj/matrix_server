@@ -3,6 +3,14 @@ defmodule Lobby.Room.Svr do
   use Common
 
   @doc """
+  加入房间
+  """
+  def join_room(room_id, args) do
+    {func, _} = __ENV__.function
+    call(room_id, {func, args})
+  end
+
+  @doc """
   踢人
   """
   def kick(room_id, args) do
@@ -116,10 +124,11 @@ defmodule Lobby.Room.Svr do
   def handle_call({func, args}, _From, state) do
     try do
       {reply, state} = apply(Lobby.Room, func, [state, args])
+      Lobby.Room.set_dirty(true)
       {:reply, reply, state}
     catch
       error ->
-        {:reply, error, state}
+        {:reply, {:error, error}, state}
     end
   end
 

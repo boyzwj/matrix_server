@@ -49,7 +49,7 @@ defmodule Lobby.Svr do
       {:reply, reply, state}
     catch
       error ->
-        {:reply, error, state}
+        {:reply, {:error, error}, state}
     end
   end
 
@@ -82,14 +82,5 @@ defmodule Lobby.Svr do
   @impl true
   def code_change(_old_vsn, state, _extra) do
     {:ok, state}
-  end
-
-  def get_room_info(room_id) do
-    with [{^room_id, %Lobby.Room{} = info}] <- :ets.lookup(Room, room_id) do
-      info
-    else
-      _ ->
-        nil
-    end
   end
 end

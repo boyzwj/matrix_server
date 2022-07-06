@@ -26,11 +26,21 @@ defmodule Role.Mod.Room do
   end
 
   def h(~M{%M room_id} = state, ~M{%Room.Creat2S mode, map_id, password}) do
-    if room_id > 0, do: throw("已经在房间里了!")
+    if room_id != 0, do: throw("已经在房间里了!")
 
     with {:ok, room_id} <- Lobby.Svr.create_room([role_id(), mode, map_id, password]) do
       ~M{%Room.Creat2C room_id} |> sd()
       {:ok, ~M{state | room_id}}
+    else
+      {:error, error} -> throw(error)
+    end
+  end
+
+  def h(~M{%M room_id} = state, ~M{%Room.Join2S room_id,password}) do
+    if room_id != 0, do: throw("已经在房间里了")
+
+    with :ok <- Lobby.Room.Svr.join_room(room_id, [role_id(), password]) do
+      {:ok, ~M{state|room_id}}
     else
       {:error, error} -> throw(error)
     end
@@ -49,14 +59,20 @@ defmodule Role.Mod.Room do
 
   # 踢人
   def h(~M{%M room_id}, ~M{%Room.Kick2S role_id}) do
-    Lobby.Room.Svr.kick(room_id, [role_id(), role_id])
-    :ok
+    with :ok <- Lobby.Room.Svr.kick(room_id, [role_id(), role_id]) do
+      :ok
+    else
+      {:error, error} -> throw(error)
+    end
   end
 
   # 换位
   def h(~M{%M room_id}, ~M{%Room.ChangePos2S position}) do
-    Lobby.Room.Svr.change_pos(room_id, [role_id(), position])
-    :ok
+    with :ok <- Lobby.Room.Svr.change_pos(room_id, [role_id(), position]) do
+      :ok
+    else
+      {:error, error} -> throw(error)
+    end
   end
 
   # 退出房间
@@ -64,8 +80,8 @@ defmodule Role.Mod.Room do
     with :ok <- Lobby.Room.Svr.exit_room(room_id, role_id()) do
       {:ok, ~M{state| room_id: 0}}
     else
-      _ ->
-        :ok
+      {:error, error} ->
+        throw(error)
     end
   end
 
