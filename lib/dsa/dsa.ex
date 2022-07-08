@@ -29,16 +29,22 @@ defmodule Dsa do
       args = [battle_id, room_id, map_id, role_ids, ip, port]
       {:ok, pid} = DynamicSupervisor.start_child(Dsa.Worker.Sup, {Dsa.Worker, args})
       now = Util.unixtime()
-      workers |> Map.put(battle_id, {map_id, pid, role_ids, ip, port, now})
-      {:ok, state}
+      workers = workers |> Map.put(battle_id, ~M{map_id, pid, role_ids, ip, port, now})
+      {:ok, ~M{state| workers}}
     else
       {:error, error} ->
         {:error, error}
     end
   end
 
-  def end_game(state, [battle_id]) do
-    {:ok, state}
+  def end_game(~M{%Dsa workers} = state, [battle_id]) do
+    with ~M{ip, port} <- Map.get(workers, battle_id) do
+      state = recycle_resource(state, {ip, port})
+      {:ok, state}
+    else
+      _ ->
+        {:ok, state}
+    end
   end
 
   defp get_resource(~M{%Dsa resources} = state) do
@@ -50,7 +56,8 @@ defmodule Dsa do
     end
   end
 
-  defp recycle_resource(~M{%Dsa resources} = state) do
-    state
+  defp recycle_resource(~M{%Dsa resources} = state, res) do
+    resources = LimitedQueue.push(resources, res)
+    ~M{state| resources}
   end
 end

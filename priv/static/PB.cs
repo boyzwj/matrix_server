@@ -1,5 +1,6 @@
 using System;
 using Google.Protobuf;
+using System.Collections.Generic;
 namespace Script.Network
 {
     public class PB
@@ -38,273 +39,100 @@ namespace Script.Network
 		public const ushort SystemError2C = 18621;
 
 
+        private static var _dic_id = new Dictionary<Type, ushort>()
+        {
+			{typeof(Role.SetName2C), RoleSetName2C},
+			{typeof(Role.SetName2S), RoleSetName2S},
+			{typeof(Role.OtherInfo2C), RoleOtherInfo2C},
+			{typeof(Role.OtherInfo2S), RoleOtherInfo2S},
+			{typeof(Role.Info2C), RoleInfo2C},
+			{typeof(Role.Info2S), RoleInfo2S},
+			{typeof(Room.StartGame2C), RoomStartGame2C},
+			{typeof(Room.StartGame2S), RoomStartGame2S},
+			{typeof(Room.Exit2C), RoomExit2C},
+			{typeof(Room.Exit2S), RoomExit2S},
+			{typeof(Room.ChangePosResult2C), RoomChangePosResult2C},
+			{typeof(Room.ChangePosRefuse2C), RoomChangePosRefuse2C},
+			{typeof(Room.ChangePosReply2S), RoomChangePosReply2S},
+			{typeof(Room.ChangePosReq2C), RoomChangePosReq2C},
+			{typeof(Room.ChangePos2S), RoomChangePos2S},
+			{typeof(Room.Kick2C), RoomKick2C},
+			{typeof(Room.Kick2S), RoomKick2S},
+			{typeof(Room.Join2C), RoomJoin2C},
+			{typeof(Room.Join2S), RoomJoin2S},
+			{typeof(Room.QuickJoin2S), RoomQuickJoin2S},
+			{typeof(Room.Creat2C), RoomCreat2C},
+			{typeof(Room.Creat2S), RoomCreat2S},
+			{typeof(Room.List2C), RoomList2C},
+			{typeof(Room.List2S), RoomList2S},
+			{typeof(Room.SetFilter2C), RoomSetFilter2C},
+			{typeof(Room.SetFilter2S), RoomSetFilter2S},
+			{typeof(Room.Update2C), RoomUpdate2C},
+			{typeof(Room.Info2C), RoomInfo2C},
+			{typeof(Room.Info2S), RoomInfo2S},
+			{typeof(Chat.Chat2C), ChatChat2C},
+			{typeof(Chat.Chat2S), ChatChat2S},
+			{typeof(System.Error2C), SystemError2C},
+
+        };
+
+        private static var _dic_parser = new Dictionary<ushort, MessageParser>()
+        {
+			{RoleSetName2C,  Role.SetName2C.Parser},
+			{RoleSetName2S,  Role.SetName2S.Parser},
+			{RoleOtherInfo2C,  Role.OtherInfo2C.Parser},
+			{RoleOtherInfo2S,  Role.OtherInfo2S.Parser},
+			{RoleInfo2C,  Role.Info2C.Parser},
+			{RoleInfo2S,  Role.Info2S.Parser},
+			{RoomStartGame2C,  Room.StartGame2C.Parser},
+			{RoomStartGame2S,  Room.StartGame2S.Parser},
+			{RoomExit2C,  Room.Exit2C.Parser},
+			{RoomExit2S,  Room.Exit2S.Parser},
+			{RoomChangePosResult2C,  Room.ChangePosResult2C.Parser},
+			{RoomChangePosRefuse2C,  Room.ChangePosRefuse2C.Parser},
+			{RoomChangePosReply2S,  Room.ChangePosReply2S.Parser},
+			{RoomChangePosReq2C,  Room.ChangePosReq2C.Parser},
+			{RoomChangePos2S,  Room.ChangePos2S.Parser},
+			{RoomKick2C,  Room.Kick2C.Parser},
+			{RoomKick2S,  Room.Kick2S.Parser},
+			{RoomJoin2C,  Room.Join2C.Parser},
+			{RoomJoin2S,  Room.Join2S.Parser},
+			{RoomQuickJoin2S,  Room.QuickJoin2S.Parser},
+			{RoomCreat2C,  Room.Creat2C.Parser},
+			{RoomCreat2S,  Room.Creat2S.Parser},
+			{RoomList2C,  Room.List2C.Parser},
+			{RoomList2S,  Room.List2S.Parser},
+			{RoomSetFilter2C,  Room.SetFilter2C.Parser},
+			{RoomSetFilter2S,  Room.SetFilter2S.Parser},
+			{RoomUpdate2C,  Room.Update2C.Parser},
+			{RoomInfo2C,  Room.Info2C.Parser},
+			{RoomInfo2S,  Room.Info2S.Parser},
+			{ChatChat2C,  Chat.Chat2C.Parser},
+			{ChatChat2S,  Chat.Chat2S.Parser},
+			{SystemError2C,  System.Error2C.Parser},
+
+        };
         public static ushort GetCmdID(IMessage obj)
         {
-            Type type = obj.GetType();
-  			if (type == typeof(Role.SetName2C))
-			{
-			    return RoleSetName2C;
-			}
-			if (type == typeof(Role.SetName2S))
-			{
-			    return RoleSetName2S;
-			}
-			if (type == typeof(Role.OtherInfo2C))
-			{
-			    return RoleOtherInfo2C;
-			}
-			if (type == typeof(Role.OtherInfo2S))
-			{
-			    return RoleOtherInfo2S;
-			}
-			if (type == typeof(Role.Info2C))
-			{
-			    return RoleInfo2C;
-			}
-			if (type == typeof(Role.Info2S))
-			{
-			    return RoleInfo2S;
-			}
-			if (type == typeof(Room.StartGame2C))
-			{
-			    return RoomStartGame2C;
-			}
-			if (type == typeof(Room.StartGame2S))
-			{
-			    return RoomStartGame2S;
-			}
-			if (type == typeof(Room.Exit2C))
-			{
-			    return RoomExit2C;
-			}
-			if (type == typeof(Room.Exit2S))
-			{
-			    return RoomExit2S;
-			}
-			if (type == typeof(Room.ChangePosResult2C))
-			{
-			    return RoomChangePosResult2C;
-			}
-			if (type == typeof(Room.ChangePosRefuse2C))
-			{
-			    return RoomChangePosRefuse2C;
-			}
-			if (type == typeof(Room.ChangePosReply2S))
-			{
-			    return RoomChangePosReply2S;
-			}
-			if (type == typeof(Room.ChangePosReq2C))
-			{
-			    return RoomChangePosReq2C;
-			}
-			if (type == typeof(Room.ChangePos2S))
-			{
-			    return RoomChangePos2S;
-			}
-			if (type == typeof(Room.Kick2C))
-			{
-			    return RoomKick2C;
-			}
-			if (type == typeof(Room.Kick2S))
-			{
-			    return RoomKick2S;
-			}
-			if (type == typeof(Room.Join2C))
-			{
-			    return RoomJoin2C;
-			}
-			if (type == typeof(Room.Join2S))
-			{
-			    return RoomJoin2S;
-			}
-			if (type == typeof(Room.QuickJoin2S))
-			{
-			    return RoomQuickJoin2S;
-			}
-			if (type == typeof(Room.Creat2C))
-			{
-			    return RoomCreat2C;
-			}
-			if (type == typeof(Room.Creat2S))
-			{
-			    return RoomCreat2S;
-			}
-			if (type == typeof(Room.List2C))
-			{
-			    return RoomList2C;
-			}
-			if (type == typeof(Room.List2S))
-			{
-			    return RoomList2S;
-			}
-			if (type == typeof(Room.SetFilter2C))
-			{
-			    return RoomSetFilter2C;
-			}
-			if (type == typeof(Room.SetFilter2S))
-			{
-			    return RoomSetFilter2S;
-			}
-			if (type == typeof(Room.Update2C))
-			{
-			    return RoomUpdate2C;
-			}
-			if (type == typeof(Room.Info2C))
-			{
-			    return RoomInfo2C;
-			}
-			if (type == typeof(Room.Info2S))
-			{
-			    return RoomInfo2S;
-			}
-			if (type == typeof(Chat.Chat2C))
-			{
-			    return ChatChat2C;
-			}
-			if (type == typeof(Chat.Chat2S))
-			{
-			    return ChatChat2S;
-			}
-			if (type == typeof(System.Error2C))
-			{
-			    return SystemError2C;
-			}
+          ushort cmd = 0;
+          Type type = obj.GetType();
+          if (_dic_id.TryGetValue(type, out cmd))
+          {
+            return cmd;
+          }
 
-            return 0;
+          return cmd;
         }
 
         public static MessageParser GetParser(ushort id)
         {
-			if (id == RoleSetName2C)
-			{
-			    return Role.SetName2C.Parser;
-			}
-			if (id == RoleSetName2S)
-			{
-			    return Role.SetName2S.Parser;
-			}
-			if (id == RoleOtherInfo2C)
-			{
-			    return Role.OtherInfo2C.Parser;
-			}
-			if (id == RoleOtherInfo2S)
-			{
-			    return Role.OtherInfo2S.Parser;
-			}
-			if (id == RoleInfo2C)
-			{
-			    return Role.Info2C.Parser;
-			}
-			if (id == RoleInfo2S)
-			{
-			    return Role.Info2S.Parser;
-			}
-			if (id == RoomStartGame2C)
-			{
-			    return Room.StartGame2C.Parser;
-			}
-			if (id == RoomStartGame2S)
-			{
-			    return Room.StartGame2S.Parser;
-			}
-			if (id == RoomExit2C)
-			{
-			    return Room.Exit2C.Parser;
-			}
-			if (id == RoomExit2S)
-			{
-			    return Room.Exit2S.Parser;
-			}
-			if (id == RoomChangePosResult2C)
-			{
-			    return Room.ChangePosResult2C.Parser;
-			}
-			if (id == RoomChangePosRefuse2C)
-			{
-			    return Room.ChangePosRefuse2C.Parser;
-			}
-			if (id == RoomChangePosReply2S)
-			{
-			    return Room.ChangePosReply2S.Parser;
-			}
-			if (id == RoomChangePosReq2C)
-			{
-			    return Room.ChangePosReq2C.Parser;
-			}
-			if (id == RoomChangePos2S)
-			{
-			    return Room.ChangePos2S.Parser;
-			}
-			if (id == RoomKick2C)
-			{
-			    return Room.Kick2C.Parser;
-			}
-			if (id == RoomKick2S)
-			{
-			    return Room.Kick2S.Parser;
-			}
-			if (id == RoomJoin2C)
-			{
-			    return Room.Join2C.Parser;
-			}
-			if (id == RoomJoin2S)
-			{
-			    return Room.Join2S.Parser;
-			}
-			if (id == RoomQuickJoin2S)
-			{
-			    return Room.QuickJoin2S.Parser;
-			}
-			if (id == RoomCreat2C)
-			{
-			    return Room.Creat2C.Parser;
-			}
-			if (id == RoomCreat2S)
-			{
-			    return Room.Creat2S.Parser;
-			}
-			if (id == RoomList2C)
-			{
-			    return Room.List2C.Parser;
-			}
-			if (id == RoomList2S)
-			{
-			    return Room.List2S.Parser;
-			}
-			if (id == RoomSetFilter2C)
-			{
-			    return Room.SetFilter2C.Parser;
-			}
-			if (id == RoomSetFilter2S)
-			{
-			    return Room.SetFilter2S.Parser;
-			}
-			if (id == RoomUpdate2C)
-			{
-			    return Room.Update2C.Parser;
-			}
-			if (id == RoomInfo2C)
-			{
-			    return Room.Info2C.Parser;
-			}
-			if (id == RoomInfo2S)
-			{
-			    return Room.Info2S.Parser;
-			}
-			if (id == ChatChat2C)
-			{
-			    return Chat.Chat2C.Parser;
-			}
-			if (id == ChatChat2S)
-			{
-			    return Chat.Chat2S.Parser;
-			}
-			if (id == SystemError2C)
-			{
-			    return System.Error2C.Parser;
-			}
+          MessageParser parser;
+          if (_dic_parser.TryGetValue(id, out parser))
+          {
+            return parser;
+          }
 
-            return null;
+          return parser;
         }
     }
 }

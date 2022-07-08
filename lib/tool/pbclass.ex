@@ -5,23 +5,43 @@ defmodule PBClass do
     """
     using System;
     using Google.Protobuf;
+    using System.Collections.Generic;
     namespace Script.Network
     {
         public class PB
         {
     #{constdef}
 
+            private static var _dic_id = new Dictionary<Type, ushort>()
+            {
+    #{type2id}
+            };
+
+            private static var _dic_parser = new Dictionary<ushort, MessageParser>()
+            {
+    #{id2parser}
+            };
             public static ushort GetCmdID(IMessage obj)
             {
-                Type type = obj.GetType();
-      #{type2id}
-                return 0;
+              ushort cmd = 0;
+              Type type = obj.GetType();
+              if (_dic_id.TryGetValue(type, out cmd))
+              {
+                return cmd;
+              }
+
+              return cmd;
             }
 
             public static MessageParser GetParser(ushort id)
             {
-    #{id2parser}
-                return null;
+              MessageParser parser;
+              if (_dic_parser.TryGetValue(id, out parser))
+              {
+                return parser;
+              }
+
+              return parser;
             }
         }
     }
@@ -63,22 +83,11 @@ defmodule PBClass do
   defp gen_type2id(~M{_id,_package,proto}) do
     const_name = String.replace(proto, ".", "")
 
-    """
-    \t\t\tif (type == typeof(#{proto}))
-    \t\t\t{
-    \t\t\t    return #{const_name};
-    \t\t\t}
-    """
+    "\t\t\t{typeof(#{proto}), #{const_name}},\n"
   end
 
   defp gen_id2parser(~M{_id,_package,proto}) do
     const_name = String.replace(proto, ".", "")
-
-    """
-    \t\t\tif (id == #{const_name})
-    \t\t\t{
-    \t\t\t    return #{proto}.Parser;
-    \t\t\t}
-    """
+    "\t\t\t{#{const_name},  #{proto}.Parser},\n"
   end
 end
