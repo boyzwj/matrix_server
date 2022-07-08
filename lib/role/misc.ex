@@ -14,9 +14,23 @@ defmodule Role.Misc do
     "role:#{role_id}"
   end
 
+  def sid() do
+    role_id() |> sid()
+  end
+
   def sid(role_id) do
-    GateWay.Session.name(role_id)
-    |> :global.whereis_name()
+    pid = Process.get(:sid)
+
+    if is_pid(pid) do
+      pid
+    else
+      pid =
+        GateWay.Session.name(role_id)
+        |> :global.whereis_name()
+
+      Process.put(:sid, pid)
+      pid
+    end
   end
 
   def online?(role_id) do
@@ -51,16 +65,14 @@ defmodule Role.Misc do
   进程内协议发送接口
   """
   def sd(msg) do
-    sid = Process.get(:sid)
-    send_to(msg, sid)
+    send_to(msg, sid())
   end
 
   @doc """
   进程内错误码发送接口
   """
   def sd_err(error_code, error_msg \\ nil) do
-    sid = Process.get(:sid)
     msg = %System.Error2C{error_code: error_code, error_msg: error_msg}
-    send_to(msg, sid)
+    send_to(msg, sid())
   end
 end

@@ -12,7 +12,11 @@ defmodule Role.Mod do
       从Redis加载角色数据
       """
       def load() do
-        data = Redis.hget(dbkey(), __MODULE__)
+        role_id() |> load()
+      end
+
+      def load(role_id) do
+        data = dbkey(role_id) |> Redis.hget(__MODULE__)
         data && Poison.decode!(data, as: %__MODULE__{})
       end
 
@@ -103,8 +107,10 @@ defmodule Role.Mod do
       存档接口
       """
       def save() do
-        get_data() |> save()
+        get_data() |> save() |> on_after_save()
       end
+
+      defp on_after_save(saved?), do: saved?
 
       defp save(nil), do: :ok
 
@@ -168,6 +174,7 @@ defmodule Role.Mod do
                      on_offline: 1,
                      on_terminate: 1,
                      save: 1,
+                     on_after_save: 1,
                      code_change: 1
     end
   end

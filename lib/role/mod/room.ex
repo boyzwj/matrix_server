@@ -27,6 +27,7 @@ defmodule Role.Mod.Room do
 
   def h(~M{%M room_id} = state, ~M{%Room.Creat2S map_id, password}) do
     if room_id != 0 do
+      Logger.debug("create room,  old #{room_id}")
       throw("已经在房间里了!")
     end
 

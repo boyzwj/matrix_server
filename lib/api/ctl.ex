@@ -104,10 +104,8 @@ defmodule Api.Ctl do
           for pid <- pids do
             role_id = :sys.get_state(pid).role_id
             ~M{account,role_name,head_id,avatar_id} = Role.Svr.get_data(pid, Role.Mod.Role)
-            sid = Role.Misc.sid(role_id)
-            ~M{session_id,crypto_key} = :sys.get_state(sid)
 
-            [role_id, pid, session_id, crypto_key, account, role_name, head_id, avatar_id]
+            [role_id, pid, account, role_name, head_id, avatar_id]
             |> table_row()
             |> (&"#{&1} [* 查看 *](/ctl/online/#{role_id}) |").()
           end
@@ -116,8 +114,8 @@ defmodule Api.Ctl do
         """
         # 在线列表
         ----------
-        | RoleID |   PID  | SessionID | CryptoKey | Account  | RoleName | HeadID | AvatarID |     |
-        |:-------|:------:|:---------:|:---------:|:--------:|:--------:|:------:|:--------:|----:|
+        | RoleID |   PID  | Account  | RoleName | HeadID | AvatarID |     |
+        |:-------|:------:|:--------:|:--------:|:------:|:--------:|----:|
         #{items}
         """
       end
@@ -147,17 +145,17 @@ defmodule Api.Ctl do
 
   get "room" do
     text =
-      for {_, ~M{room_id,type,status,create_time,owner,password,member_num}} <-
+      for {_, ~M{room_id,map_id,owner_id,status,member_num,create_time,password}} <-
             :ets.tab2list(Room) do
-        [room_id, type, status, create_time, owner, password, member_num]
+        [room_id, map_id, owner_id, status, member_num, create_time, password]
         |> table_row()
       end
       |> Enum.join("\n")
       |> (&"""
           # 房间列表
           ---------------------------
-          |RoomID|MemberNum|Owner| Type |Status|Password|CreateTime|
-          |:----:|:-------:|:---:|:----:|:----:|:------:|---------:|
+          | RoomID | MapID | Owner | Status | MemberNum | CreateTime | Password |
+          |:----:|:-------:|:-----:|:------:|:---------:|:----------:|---------:|
           #{&1}
           """).()
 

@@ -33,12 +33,19 @@ defmodule Robot.FSM do
   end
 
   def loop(%Worker{status: @status_online} = state) do
+    requests =
+      for role_id <- 1..10 do
+        %Role.InfoRequest{role_id: role_id, timestamp: 0}
+      end
+
     state
     |> Worker.send_ping()
+    |> Worker.send_buf(%Role.Info2S{})
+    |> Worker.send_buf(%Role.OtherInfo2S{requests: requests})
 
     # |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
 
-    |> Worker.send_buf(%Room.Creat2S{map_id: 1_010_100, password: "fuck"})
+    # |> Worker.send_buf(%Room.Creat2S{map_id: 1_010_100, password: "fuck"})
 
     # |> Worker.send_buf(%Room.List2S{})
 
