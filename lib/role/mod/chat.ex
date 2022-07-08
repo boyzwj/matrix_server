@@ -2,7 +2,7 @@ defmodule Role.Mod.Chat do
   defstruct channels: %{}, last_chat_time: nil
   use Role.Mod
 
-  def h(state, ~M{%Chat.Chat2S channel,content}) do
+  def h(~M{%M } = state, ~M{%Chat.Chat2S channel,content}) do
     %Chat.Chat2C{
       role_id: role_id(),
       content: content,

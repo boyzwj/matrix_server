@@ -21,6 +21,7 @@ defmodule Role.Mod do
       """
       def init() do
         data = get_data()
+        # Logger.debug("#{__MODULE__} begin init , data: #{inspect(data)}")
 
         if data == nil do
           Role.Svr.role_id()
@@ -45,30 +46,19 @@ defmodule Role.Mod do
       协议处理宏
       """
       def h(msg) do
-        try do
-          with {:ok, %__MODULE__{} = data} <- get_data() |> h(msg) do
-            set_data(data)
-          else
-            :ok ->
-              :ignore
+        with {:ok, %__MODULE__{} = data} <- get_data() |> h(msg) do
+          set_data(data)
+        else
+          :ok ->
+            :ignore
 
-            :ignore ->
-              :ignore
+          :ignore ->
+            :ignore
 
-            error ->
-              Logger.warn(
-                "handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}, expect end with {:ok, newstate}, :ok , :ignore"
-              )
-          end
-        catch
-          x when is_integer(x) ->
-            sd_err(x)
-
-          x when is_bitstring(x) ->
-            sd_err(0, x)
-
-          x ->
-            sd_err(0, inspect(x))
+          error ->
+            Logger.warn(
+              "handle msg:#{inspect(msg)} has illigal return: #{inspect(error)}, expect end with {:ok, newstate}, :ok , :ignore"
+            )
         end
       end
 
@@ -138,13 +128,16 @@ defmodule Role.Mod do
       """
       @spec get_data() :: term
       def get_data() do
-        Process.get({__MODULE__, :data})
+        data = Process.get({__MODULE__, :data})
+        # Logger.info("#{__MODULE__} get data #{inspect(data)}")
+        data
       end
 
       @doc """
       报错模块数据
       """
       def set_data(data) do
+        # Logger.info("#{__MODULE__} set data #{inspect(data)}")
         Process.put({__MODULE__, :data}, data)
         set_dirty(true)
       end

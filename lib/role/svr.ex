@@ -71,15 +71,13 @@ defmodule Role.Svr do
   ## ===CALLBACK====
   @impl true
   def init(role_id) do
-    Process.send_after(self(), :init, @loop_interval)
     Logger.debug("role.svr [#{role_id}]  start")
     Process.put(:role_id, role_id)
     Role.load_data()
     now = Util.unixtime()
-    last_save_time = now
-    last_msg_time = now
     status = @status_init
-    {:ok, ~M{%Role.Svr role_id,last_save_time,status,last_msg_time}}
+    Process.send(self(), :init, [:nosuspend])
+    {:ok, ~M{%Role.Svr role_id,status,last_save_time: now, last_msg_time: now}}
   end
 
   @impl true
@@ -127,7 +125,19 @@ defmodule Role.Svr do
   def handle_cast({:client_msg, data}, state) when is_binary(data) do
     with {:ok, msg} <- PB.decode(data) do
       mod = msg |> Map.get(:__struct__) |> PB.mod()
-      mod.h(msg)
+
+      try do
+        mod.h(msg)
+      catch
+        x when is_integer(x) ->
+          Role.Misc.sd_err(x)
+
+        x when is_bitstring(x) ->
+          Role.Misc.sd_err(0, x)
+
+        x ->
+          Role.Misc.sd_err(0, inspect(x))
+      end
     else
       _ ->
         Logger.warning("client msg decode error")
