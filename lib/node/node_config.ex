@@ -48,7 +48,8 @@ defmodule NodeConfig do
         ]
       },
       {Redis.Manager, []},
-      {Lobby.Sup, []}
+      {Lobby.Sup, []},
+      {Dsa.Sup, []}
     ] ++ role_inferfaces
   end
 
@@ -100,6 +101,7 @@ defmodule NodeConfig do
       },
       {Redis.Manager, []},
       {Lobby.Sup, []},
+      {Dsa.Sup, []},
       {Api.Sup, []},
       {GateWay.ListenerSup, []}
     ] ++ role_inferfaces

@@ -10,6 +10,11 @@ defmodule Dsa.Svr do
     GenServer.call(__MODULE__, {func, args})
   end
 
+  def end_game(args) do
+    {func, _} = __ENV__.function
+    GenServer.call(__MODULE__, {func, args})
+  end
+
   ### =====================callback ======================
   def start_link(_opts) do
     GenServer.start_link(__MODULE__, [], name: __MODULE__)

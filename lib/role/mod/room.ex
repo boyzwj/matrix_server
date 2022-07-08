@@ -1,34 +1,34 @@
 defmodule Role.Mod.Room do
-  defstruct room_id: 0, mode: 0, map_id: 0, status: 0
+  defstruct room_id: 0, map_id: 0, status: 0
   use Role.Mod
 
   @doc """
   协议处理
   """
-  def h(~M{%M room_id, mode, map_id}, %Room.Info2S{}) do
+  def h(~M{%M room_id, map_id}, %Room.Info2S{}) do
     with ~M{members,owner_id} <- Lobby.Svr.get_room_info(room_id) do
-      ~M{%Room.Info2C room_id,owner_id,map_id,mode,members} |> sd()
+      ~M{%Room.Info2C room_id,owner_id,map_id,members} |> sd()
     else
       _ ->
-        ~M{%Room.Info2C room_id,map_id,mode} |> sd()
+        ~M{%Room.Info2C room_id,map_id} |> sd()
     end
   end
 
-  def h(~M{%M } = state, ~M{%Room.SetFilter2S mode}) do
-    ~M{%Room.SetFilter2C mode} |> sd()
-    {:ok, ~M{state| mode}}
+  def h(~M{%M } = state, ~M{%Room.SetFilter2S map_id}) do
+    ~M{%Room.SetFilter2C map_id} |> sd()
+    {:ok, ~M{state| map_id}}
   end
 
   # 请求房间列表
-  def h(~M{%M mode,map_id}, ~M{%Room.List2S }) do
-    Lobby.Svr.get_room_list([role_id(), mode, map_id])
+  def h(~M{%M map_id}, ~M{%Room.List2S }) do
+    Lobby.Svr.get_room_list([role_id(), map_id])
     :ok
   end
 
-  def h(~M{%M room_id} = state, ~M{%Room.Creat2S mode, map_id, password}) do
+  def h(~M{%M room_id} = state, ~M{%Room.Creat2S map_id, password}) do
     if room_id != 0, do: throw("已经在房间里了!")
 
-    with {:ok, room_id} <- Lobby.Svr.create_room([role_id(), mode, map_id, password]) do
+    with {:ok, room_id} <- Lobby.Svr.create_room([role_id(), map_id, password]) do
       ~M{%Room.Creat2C room_id} |> sd()
       {:ok, ~M{state | room_id}}
     else
@@ -46,10 +46,10 @@ defmodule Role.Mod.Room do
     end
   end
 
-  def h(~M{%M room_id,mode,map_id} = state, ~M{%Room.QuickJoin2S }) do
+  def h(~M{%M room_id,map_id} = state, ~M{%Room.QuickJoin2S }) do
     if room_id > 0, do: throw("已经在房间里了!")
 
-    with {:ok, room_id} <- Lobby.Svr.quick_join([role_id(), mode, map_id]) do
+    with {:ok, room_id} <- Lobby.Svr.quick_join([role_id(), map_id]) do
       {:ok, ~M{state | room_id}}
     else
       {:error, error} ->
@@ -86,7 +86,7 @@ defmodule Role.Mod.Room do
   end
 
   # 开始游戏
-  def h(~M{%M room_id}, ~M{%Room.StartGame2C }) do
+  def h(~M{%M room_id}, ~M{%Room.StartGame2S }) do
     with :ok <- Lobby.Room.Svr.start_game(room_id, role_id()) do
       :ok
     else

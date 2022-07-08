@@ -29,6 +29,10 @@ defmodule PBClass do
   end
 
   def create() do
+    File.write!("#{:code.priv_dir(:matrix_server)}/static/PB.cs", content(), [:write])
+  end
+
+  def content() do
     constdef = ""
     type2id = ""
     id2parser = ""
@@ -37,8 +41,7 @@ defmodule PBClass do
       PB.PBID.proto_ids()
       |> create(constdef, type2id, id2parser)
 
-    content = template(constdef, type2id, id2parser)
-    File.write!("./proto/PB.cs", content, [:write])
+    template(constdef, type2id, id2parser)
   end
 
   defp create([], constdef, type2id, id2parser) do

@@ -41,10 +41,9 @@ defmodule Lobby do
     end
   end
 
-  def get_room_list(~M{%M } = state, [role_id, select_mode, select_map_id]) do
-    f = fn {_, ~M{%Lobby.Room mode,map_id} = data}, acc ->
-      if (select_mode == 0 || select_mode == mode) &&
-           (select_map_id == 0 || select_map_id == map_id) do
+  def get_room_list(~M{%M } = state, [role_id, select_map_id]) do
+    f = fn {_, ~M{%Lobby.Room map_id} = data}, acc ->
+      if select_map_id == 0 || select_map_id == map_id do
         [Lobby.Room.to_common(data) | acc]
       else
         acc
@@ -54,6 +53,15 @@ defmodule Lobby do
     rooms = :ets.foldl(f, [], Room)
     ~M{%Room.List2C rooms} |> Role.Misc.send_to(role_id)
     state |> ok()
+  end
+
+  def get_room_info(state, room_id) do
+    with [{_, v}] <- :ets.lookup(Room, room_id) do
+      {v, state}
+    else
+      _ ->
+        {nil, state}
+    end
   end
 
   def recycle_room(state, room_id) do

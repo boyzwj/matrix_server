@@ -2,7 +2,6 @@ defmodule Lobby.Room do
   defstruct room_id: 0,
             owner_id: nil,
             status: 0,
-            mode: 0,
             positions: %{},
             member_num: 0,
             map_id: 0,
@@ -17,14 +16,14 @@ defmodule Lobby.Room do
   @idle_time 3_600
   @positions [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
 
-  def init([room_id, owner_id, mode, map_id, password]) do
+  def init([room_id, owner_id, map_id, password]) do
     Logger.debug("Room.Svr room_id: [#{room_id}] owenr_id: [#{owner_id}]  start")
     :pg.join(M, self())
     create_time = Util.unixtime()
     last_game_time = create_time
 
     state =
-      ~M{%M room_id,mode,map_id,password,create_time,last_game_time,owner_id}
+      ~M{%M room_id,map_id,password,create_time,last_game_time,owner_id}
       |> do_join(owner_id)
 
     :ets.insert(Room, {room_id, state})
@@ -94,9 +93,9 @@ defmodule Lobby.Room do
   @doc """
   开始游戏回调
   """
-  def start_game(~M{%M owner_id,mode, map_id} = state, role_id) do
+  def start_game(~M{%M room_id, owner_id, map_id} = state, role_id) do
     if role_id != owner_id, do: throw("你不是房主")
-    Dsa.Svr.start_game([mode, map_id, role_ids()])
+    Dsa.Svr.start_game([map_id, room_id, role_ids()])
     state |> ok()
   end
 
@@ -160,13 +159,13 @@ defmodule Lobby.Room do
     |> set_role_ids()
   end
 
-  defp sync(~M{%M room_id, owner_id,mode,map_id, positions} = state) do
+  defp sync(~M{%M room_id, owner_id,map_id, positions} = state) do
     members =
       for {k, v} <- positions, not is_nil(v) do
         %Room.Member{role_id: v, position: k}
       end
 
-    ~M{%Room.Update2C room_id,owner_id,map_id,mode,members} |> broad_cast()
+    ~M{%Room.Update2C room_id,owner_id,map_id,members} |> broad_cast()
     state
   end
 

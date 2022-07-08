@@ -11,7 +11,7 @@ defmodule Api.Ctl do
 
     text = """
     # 基础功能
-    ## [查看报错](/ctl/error) [协议定义](/ctl/pblua) [在线列表:#{online_num}](/ctl/online) [房间列表:#{room_num}](/ctl/room)
+    ## [查看报错](/ctl/error) [协议Lua](/ctl/pblua) [协议CS](/ctl/pbcs) [在线列表:#{online_num}](/ctl/online) [房间列表:#{room_num}](/ctl/room)
     -------------
     # 运维功能
     ## [重 启](/ctl/restart) [清 档](/ctl/clear_db)
@@ -48,6 +48,26 @@ defmodule Api.Ctl do
       |> (&"""
           # 协议定义
           ## [download](/static/PT.lua)
+          ---------------------
+          ```lua
+          #{&1}
+          ```
+          """).()
+
+    conn |> send_markdown(text)
+  end
+
+  get "pbcs" do
+    text =
+      with {:ok, data} <- File.read("#{:code.priv_dir(:matrix_server)}/static/PB.cs") do
+        data
+      else
+        _ ->
+          "没有生成"
+      end
+      |> (&"""
+          # 协议定义
+          ## [download](/static/PB.cs)
           ---------------------
           ```lua
           #{&1}

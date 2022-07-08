@@ -36,8 +36,10 @@ defmodule Robot.FSM do
     state
     |> Worker.send_ping()
     |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
-    |> Worker.send_buf(%Room.List2S{})
-    |> Worker.send_buf(%Room.Join2S{room_id: 1001, password: "fuck"})
+    |> Worker.send_buf(%Room.Creat2S{map_id: 1_010_100, password: "fuck"})
+
+    # |> Worker.send_buf(%Room.List2S{})
+    # |> Worker.send_buf(%Room.Join2S{room_id: 1001, password: "fuck"})
   end
 
   def loop(%Worker{status: @status_offline, addr: addr, port: port} = state) do
