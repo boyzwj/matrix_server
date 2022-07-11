@@ -18,19 +18,8 @@ defmodule NodeConfig do
     FastGlobal.put(:block_id, block_id)
     topologies = Application.get_env(:matrix_server, :topologies)
 
-    role_inferfaces =
-      for worker_id <- 1..Application.get_env(:matrix_server, :role_interface_num) do
-        {Role.Interface, [worker_id]}
-      end
-
     [
       {Cluster.Supervisor, [topologies, [name: Matrix.ClusterSupervisor]]},
-      {DynamicSupervisor,
-       [
-         name: Role.Sup,
-         shutdown: 1000,
-         strategy: :one_for_one
-       ]},
       {DynamicSupervisor,
        [
          name: Redis.Sup,
@@ -47,10 +36,11 @@ defmodule NodeConfig do
           members: :auto
         ]
       },
+      {Role.Sup, []},
       {Redis.Manager, []},
       {Lobby.Sup, []},
       {Dsa.Sup, []}
-    ] ++ role_inferfaces
+    ]
   end
 
   def services("gate", block_id) do
@@ -71,19 +61,8 @@ defmodule NodeConfig do
   def services("develop", block_id) do
     FastGlobal.put(:block_id, block_id)
 
-    role_inferfaces =
-      for worker_id <- 1..Application.get_env(:matrix_server, :role_interface_num) do
-        {Role.Interface, [worker_id]}
-      end
-
     [
       {Horde.Registry, [name: Matrix.DBRegistry, keys: :unique, members: :auto]},
-      {DynamicSupervisor,
-       [
-         name: Role.Sup,
-         shutdown: 1000,
-         strategy: :one_for_one
-       ]},
       {DynamicSupervisor,
        [
          name: Redis.Sup,
@@ -99,12 +78,13 @@ defmodule NodeConfig do
           members: :auto
         ]
       },
+      {Role.Sup, []},
       {Redis.Manager, []},
       {Lobby.Sup, []},
       {Dsa.Sup, []},
       {Api.Sup, []},
       {GateWay.ListenerSup, []}
-    ] ++ role_inferfaces
+    ]
   end
 
   def services(node_type, _) do

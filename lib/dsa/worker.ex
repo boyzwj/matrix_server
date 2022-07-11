@@ -50,6 +50,7 @@ defmodule Dsa.Worker do
     args = ["-direct_test 1" | args]
     args = ["-game_battleid #{battle_id}" | args]
     args = ["-net_outPort #{port}" | args]
+    args = ["-net_inPort #{port + 1}" | args]
     args = ["-room_id #{room_id}" | args]
     {pid, ref} = Process.spawn(fn -> System.cmd("/ds/ds", args) end, [:monitor])
 

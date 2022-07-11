@@ -6,6 +6,7 @@ MIX_ENV=prod mix release --overwrite
 echo 'upload to remote ....'
 sshpass -p $REMOTE_PASS scp -r _build/prod/rel/matrix_server/ $REMOTE_HOST:/release
 echo '>>>>  upload finish  <<<<'
-echo 'begin hot update'
-sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server rpc \"Reloader.update_all()\""
-echo '>>>>  hot update finish <<<<'
+echo 'begin restart'
+# sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server rpc \"Reloader.update_all()\""
+sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server restart"
+echo '>>>>  restart finish <<<<'
