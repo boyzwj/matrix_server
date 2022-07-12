@@ -12,12 +12,12 @@ defmodule PBClass do
         {
     #{constdef}
 
-            private static var _dic_id = new Dictionary<Type, ushort>()
+            private static Dictionary<Type, ushort> _dic_id = new Dictionary<Type, ushort>()
             {
     #{type2id}
             };
 
-            private static var _dic_parser = new Dictionary<ushort, MessageParser>()
+            private static Dictionary<ushort, MessageParser> _dic_parser = new Dictionary<ushort, MessageParser>()
             {
     #{id2parser}
             };

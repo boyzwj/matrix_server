@@ -44,6 +44,17 @@ defmodule Lobby.Svr do
   def init(_args) do
     Process.send_after(self(), :secondloop, @loop_interval)
     state = Lobby.init()
+
+    Agent.start(fn ->
+      :ets.new(Room, [
+        :public,
+        :named_table,
+        {:keypos, 1},
+        {:write_concurrency, true},
+        {:read_concurrency, true}
+      ])
+    end)
+
     {:ok, state}
   end
 

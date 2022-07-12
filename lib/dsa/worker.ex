@@ -3,7 +3,7 @@ defmodule Dsa.Worker do
             room_id: nil,
             map_id: nil,
             role_ids: [],
-            ip: nil,
+            host: nil,
             port: nil,
             pid: nil,
             ref: nil
@@ -44,21 +44,34 @@ defmodule Dsa.Worker do
   end
 
   @impl true
-  def init([battle_id, room_id, map_id, role_ids, ip, port]) do
-    args = []
-    args = ["-game_mapId #{map_id}" | args]
-    args = ["-direct_test 1" | args]
-    args = ["-game_battleid #{battle_id}" | args]
-    args = ["-net_outPort #{port}" | args]
-    args = ["-net_inPort #{port + 1}" | args]
-    args = ["-room_id #{room_id}" | args]
-    {pid, ref} = Process.spawn(fn -> System.cmd("/ds/ds", args) end, [:monitor])
+  def init([battle_id, room_id, map_id, role_ids, host, port]) do
+    game_mapId = map_id
+    direct_test = 1
+    game_battleid = battle_id
+    net_outPort = port
+    net_inPort = port + 1
+
+    args =
+      for {k, v} <- ~m{game_mapId,direct_test,game_battleid,net_outPort,net_inPort} do
+        ["-#{k}", "#{v}"]
+      end
+      |> Enum.concat()
+
+    # Logger.info(args)
+
+    {pid, ref} =
+      Process.spawn(
+        fn ->
+          System.cmd("#{File.cwd!()}/ds/ds", args)
+        end,
+        [:monitor]
+      )
 
     for role_id <- role_ids do
-      Role.Misc.send_to(~M{%Room.StartGame2C battle_id, ip, port,map_id}, role_id)
+      Role.Misc.send_to(~M{%Room.StartGame2C battle_id, host, port,map_id}, role_id)
     end
 
-    state = ~M{%M battle_id,room_id, map_id, role_ids, ip, port,pid, ref}
+    state = ~M{%M battle_id,room_id, map_id, role_ids, host, port,pid, ref}
     {:ok, state}
   end
 

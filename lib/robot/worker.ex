@@ -169,7 +169,7 @@ defmodule Robot.Worker do
     decode_proto(state, data)
   end
 
-  def decode_body(state, _) do
+  def decode_body(state, _data) do
     state
   end
 

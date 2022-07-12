@@ -25,8 +25,8 @@ namespace Script.Network
 		public const ushort RoomJoin2C = 54938;
 		public const ushort RoomJoin2S = 8120;
 		public const ushort RoomQuickJoin2S = 4770;
-		public const ushort RoomCreat2C = 29100;
-		public const ushort RoomCreat2S = 44306;
+		public const ushort RoomCreate2C = 33188;
+		public const ushort RoomCreate2S = 20173;
 		public const ushort RoomList2C = 37512;
 		public const ushort RoomList2S = 22718;
 		public const ushort RoomSetFilter2C = 42712;
@@ -37,9 +37,22 @@ namespace Script.Network
 		public const ushort ChatChat2C = 16613;
 		public const ushort ChatChat2S = 63158;
 		public const ushort SystemError2C = 18621;
+		public const ushort TeamBeginMatch2S = 1886;
+		public const ushort TeamExit2C = 16055;
+		public const ushort TeamExit2S = 52438;
+		public const ushort TeamJoin2C = 60395;
+		public const ushort TeamInviteReply2C = 25111;
+		public const ushort TeamInviteReply2S = 59005;
+		public const ushort TeamInviteRequest2C = 51076;
+		public const ushort TeamInvite2C = 6002;
+		public const ushort TeamInvite2S = 65065;
+		public const ushort TeamCreate2C = 55520;
+		public const ushort TeamCreate2S = 63763;
+		public const ushort TeamInfo2C = 49860;
+		public const ushort TeamInfo2S = 14921;
 
 
-        private static var _dic_id = new Dictionary<Type, ushort>()
+        private static Dictionary<Type, ushort> _dic_id = new Dictionary<Type, ushort>()
         {
 			{typeof(Role.SetName2C), RoleSetName2C},
 			{typeof(Role.SetName2S), RoleSetName2S},
@@ -61,8 +74,8 @@ namespace Script.Network
 			{typeof(Room.Join2C), RoomJoin2C},
 			{typeof(Room.Join2S), RoomJoin2S},
 			{typeof(Room.QuickJoin2S), RoomQuickJoin2S},
-			{typeof(Room.Creat2C), RoomCreat2C},
-			{typeof(Room.Creat2S), RoomCreat2S},
+			{typeof(Room.Create2C), RoomCreate2C},
+			{typeof(Room.Create2S), RoomCreate2S},
 			{typeof(Room.List2C), RoomList2C},
 			{typeof(Room.List2S), RoomList2S},
 			{typeof(Room.SetFilter2C), RoomSetFilter2C},
@@ -73,10 +86,23 @@ namespace Script.Network
 			{typeof(Chat.Chat2C), ChatChat2C},
 			{typeof(Chat.Chat2S), ChatChat2S},
 			{typeof(System.Error2C), SystemError2C},
+			{typeof(Team.BeginMatch2S), TeamBeginMatch2S},
+			{typeof(Team.Exit2C), TeamExit2C},
+			{typeof(Team.Exit2S), TeamExit2S},
+			{typeof(Team.Join2C), TeamJoin2C},
+			{typeof(Team.InviteReply2C), TeamInviteReply2C},
+			{typeof(Team.InviteReply2S), TeamInviteReply2S},
+			{typeof(Team.InviteRequest2C), TeamInviteRequest2C},
+			{typeof(Team.Invite2C), TeamInvite2C},
+			{typeof(Team.Invite2S), TeamInvite2S},
+			{typeof(Team.Create2C), TeamCreate2C},
+			{typeof(Team.Create2S), TeamCreate2S},
+			{typeof(Team.Info2C), TeamInfo2C},
+			{typeof(Team.Info2S), TeamInfo2S},
 
         };
 
-        private static var _dic_parser = new Dictionary<ushort, MessageParser>()
+        private static Dictionary<ushort, MessageParser> _dic_parser = new Dictionary<ushort, MessageParser>()
         {
 			{RoleSetName2C,  Role.SetName2C.Parser},
 			{RoleSetName2S,  Role.SetName2S.Parser},
@@ -98,8 +124,8 @@ namespace Script.Network
 			{RoomJoin2C,  Room.Join2C.Parser},
 			{RoomJoin2S,  Room.Join2S.Parser},
 			{RoomQuickJoin2S,  Room.QuickJoin2S.Parser},
-			{RoomCreat2C,  Room.Creat2C.Parser},
-			{RoomCreat2S,  Room.Creat2S.Parser},
+			{RoomCreate2C,  Room.Create2C.Parser},
+			{RoomCreate2S,  Room.Create2S.Parser},
 			{RoomList2C,  Room.List2C.Parser},
 			{RoomList2S,  Room.List2S.Parser},
 			{RoomSetFilter2C,  Room.SetFilter2C.Parser},
@@ -110,6 +136,19 @@ namespace Script.Network
 			{ChatChat2C,  Chat.Chat2C.Parser},
 			{ChatChat2S,  Chat.Chat2S.Parser},
 			{SystemError2C,  System.Error2C.Parser},
+			{TeamBeginMatch2S,  Team.BeginMatch2S.Parser},
+			{TeamExit2C,  Team.Exit2C.Parser},
+			{TeamExit2S,  Team.Exit2S.Parser},
+			{TeamJoin2C,  Team.Join2C.Parser},
+			{TeamInviteReply2C,  Team.InviteReply2C.Parser},
+			{TeamInviteReply2S,  Team.InviteReply2S.Parser},
+			{TeamInviteRequest2C,  Team.InviteRequest2C.Parser},
+			{TeamInvite2C,  Team.Invite2C.Parser},
+			{TeamInvite2S,  Team.Invite2S.Parser},
+			{TeamCreate2C,  Team.Create2C.Parser},
+			{TeamCreate2S,  Team.Create2S.Parser},
+			{TeamInfo2C,  Team.Info2C.Parser},
+			{TeamInfo2S,  Team.Info2S.Parser},
 
         };
         public static ushort GetCmdID(IMessage obj)

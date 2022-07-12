@@ -51,13 +51,15 @@ defmodule Role.Misc do
   def send_to(_msg, nil), do: :ignore
 
   def send_to(msg, role_id) when is_integer(role_id) do
-    sid = sid(role_id)
-    sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
-    :ok
+    sid =
+      GateWay.Session.name(role_id)
+      |> :global.whereis_name()
+
+    send_to(msg, sid)
   end
 
   def send_to(msg, sid) when is_pid(sid) do
-    sid && Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
+    Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
     :ok
   end
 

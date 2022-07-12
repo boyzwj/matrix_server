@@ -25,14 +25,13 @@ defmodule Role.Mod.Room do
     :ok
   end
 
-  def h(~M{%M room_id} = state, ~M{%Room.Creat2S map_id, password}) do
+  def h(~M{%M room_id} = state, ~M{%Room.Create2S map_id, password}) do
     if room_id != 0 do
-      Logger.debug("create room,  old #{room_id}")
       throw("已经在房间里了!")
     end
 
     with {:ok, room_id} <- Lobby.Svr.create_room([role_id(), map_id, password]) do
-      ~M{%Room.Creat2C room_id} |> sd()
+      ~M{%Room.Create2C room_id} |> sd()
       {:ok, ~M{state | room_id}}
     else
       {:error, error} -> throw(error)

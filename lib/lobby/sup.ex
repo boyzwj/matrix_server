@@ -17,14 +17,6 @@ defmodule Lobby.Sup do
        ]}
     ]
 
-    :ets.new(Room, [
-      :public,
-      :named_table,
-      {:keypos, 1},
-      {:write_concurrency, true},
-      {:read_concurrency, true}
-    ])
-
     Supervisor.init(children, strategy: :one_for_one)
   end
 end
