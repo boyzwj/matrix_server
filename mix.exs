@@ -24,6 +24,7 @@ defmodule Server.MixProject do
   defp deps do
     [
       {:benchee, "~> 1.1", only: :dev},
+      {:exsync, "~> 0.2.4", only: :dev},
       {:limited_queue, "~> 0.1.0"},
       {:uuid, "~> 1.1"},
       {:shorter_maps, "~> 2.2"},
@@ -44,7 +45,7 @@ defmodule Server.MixProject do
       {:manifold, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
       {:earmark, "~> 1.4"},
-      {:exsync, "~> 0.2.4", only: :dev}
+      {:memoize, "~> 1.4"}
     ]
   end
 

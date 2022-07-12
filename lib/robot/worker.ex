@@ -130,7 +130,7 @@ defmodule Robot.Worker do
 
   def decode_body(state, <<@proto_authorize, data::binary>>) do
     <<role_id::64-little, session_id::binary>> = Util.dec_rc4(data, @base_key)
-    Logger.debug("authorize ok, session_id: #{session_id}")
+    Logger.debug("robot#{state.id} ,role_id: #{role_id}  authorize ok, session_id: #{session_id}")
     crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
 
     ~M{%Worker state|role_id,session_id,crypto_key}

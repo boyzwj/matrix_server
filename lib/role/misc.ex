@@ -19,18 +19,8 @@ defmodule Role.Misc do
   end
 
   def sid(role_id) do
-    pid = Process.get(:sid)
-
-    if is_pid(pid) do
-      pid
-    else
-      pid =
-        GateWay.Session.name(role_id)
-        |> :global.whereis_name()
-
-      Process.put(:sid, pid)
-      pid
-    end
+    GateWay.Session.name(role_id)
+    |> :global.whereis_name()
   end
 
   def online?(role_id) do

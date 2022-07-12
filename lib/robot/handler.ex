@@ -7,7 +7,7 @@ defmodule Robot.Handler do
   end
 
   def h(state, msg) do
-    Logger.warning("unhandle msg: #{inspect(msg)}")
+    Logger.warning("robot: #{state.role_id},unhandle msg: #{inspect(msg)}")
     state
   end
 end

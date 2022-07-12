@@ -32,6 +32,7 @@
   "lz4": {:hex, :lz4_erl, "0.2.4", "fafc1fa39ed1d034893316852daebedd82f37df478446224ac096490be3b4a4d", [:rebar3], [], "hexpm", "e3eb9e2b5c1e4dab39db8fe0421e6fa10f9bf5843f20dab43518f8ab8e812517"},
   "manifold": {:hex, :manifold, "1.4.0", "4fb7922511eb5e3c22bc6821df1d10e63d4f26a6ada97a9c164d2390174cea1e", [:mix], [], "hexpm", "9c7b4ce07425421673559bf366d818ac0e3ca2e769d81087beb12fe4678e5251"},
   "memento": {:hex, :memento, "0.3.2", "38cfc8ff9bcb1adff7cbd0f3b78a762636b86dff764729d1c82d0464c539bdd0", [:mix], [], "hexpm", "25cf691a98a0cb70262f4a7543c04bab24648cb2041d937eb64154a8d6f8012b"},
+  "memoize": {:hex, :memoize, "1.4.0", "dce828382552a03d166b0793772514835ea079d74aa5f825dceb2827ad86cf13", [:mix], [], "hexpm", "c73d50feef0d44a9fa9a4d7e13ca53c367b0307aeb48204301d07a01a707b776"},
   "merkle_map": {:hex, :merkle_map, "0.2.1", "01a88c87a6b9fb594c67c17ebaf047ee55ffa34e74297aa583ed87148006c4c8", [:mix], [], "hexpm", "fed4d143a5c8166eee4fa2b49564f3c4eace9cb252f0a82c1613bba905b2d04d"},
   "mime": {:hex, :mime, "2.0.2", "0b9e1a4c840eafb68d820b0e2158ef5c49385d17fb36855ac6e7e087d4b1dcc5", [:mix], [], "hexpm", "e6a3f76b4c277739e36c2e21a2c640778ba4c3846189d5ab19f97f126df5f9b7"},
   "mnesia_eleveldb": {:git, "https://github.com/klarna/mnesia_eleveldb", "38125fc9807c97c1120b0a7b96e8e49ce5dd0f17", [tag: "1.1.1"]},
