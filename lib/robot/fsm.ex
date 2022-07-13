@@ -39,12 +39,11 @@ defmodule Robot.FSM do
     #   end
 
     state
-    # |> Worker.send_ping()
+    |> Worker.send_ping()
     # |> Worker.send_buf(%Role.Info2S{})
     # |> Worker.send_buf(%Role.OtherInfo2S{requests: requests})
-
     # |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
-    |> Worker.send_buf(%Room.List2S{})
+    # |> Worker.send_buf(%Room.List2S{})
     # |> Worker.send_buf(%Room.Create2S{map_id: 10_051_068, password: "fuck"})
 
   end

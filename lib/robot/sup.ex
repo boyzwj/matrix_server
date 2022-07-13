@@ -12,6 +12,7 @@ defmodule Robot.Sup do
   end
 
   def start_link(opts) do
+    opts = [name: __MODULE__] ++ opts
     DynamicSupervisor.start_link(__MODULE__, [], opts)
   end
 

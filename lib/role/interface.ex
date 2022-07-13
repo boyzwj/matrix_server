@@ -17,18 +17,20 @@ defmodule Role.Interface do
     :lists.nth(index, pids)
   end
 
-  def child_spec(worker_id) do
+  def child_spec([worker_id]) do
+    id = :"role_interface_#{worker_id}"
+
     %{
-      id: :"role_interface_#{worker_id}",
-      start: {__MODULE__, :start_link, []},
+      id: id,
+      start: {__MODULE__, :start_link, [[name: id]]},
       shutdown: 10_000,
       restart: :transient,
       type: :worker
     }
   end
 
-  def start_link() do
-    GenServer.start_link(__MODULE__, [])
+  def start_link(args) do
+    GenServer.start_link(__MODULE__, [], args)
   end
 
   @impl true

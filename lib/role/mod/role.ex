@@ -1,6 +1,7 @@
 defmodule Role.Mod.Role do
   defstruct account: "", role_name: "", gender: 1, head_id: 1, avatar_id: 1, rank: 0
   use Role.Mod
+  use Memoize
 
   def h(state, ~M{%Role.Info2S }) do
     with ~M{%M } = data <- state do
@@ -13,13 +14,12 @@ defmodule Role.Mod.Role do
   end
 
   def h(_state, ~M{%Role.OtherInfo2S requests}) do
-    now = Util.unixtime()
-
     infos =
       for ~M{role_id,timestamp} <- requests do
-        if ttl(role_id) > timestamp do
-          role_info = load(role_id) |> to_common()
-          %Role.InfoReply{role_id: role_id, timestamp: now, role_info: role_info}
+        {cachetime, role_info} = role_info(role_id)
+
+        if timestamp < cachetime do
+          %Role.InfoReply{role_id: role_id, timestamp: cachetime, role_info: role_info}
         else
           %Role.InfoReply{role_id: role_id, timestamp: timestamp}
         end
@@ -32,12 +32,15 @@ defmodule Role.Mod.Role do
   defp on_after_save(false), do: false
 
   defp on_after_save(true) do
-    Redis.hset("TTL:#{role_id()}", __MODULE__, Util.unixtime())
+    Role.Manager.clear_cache(__MODULE__, :role_info, [role_id()])
+    true
   end
 
-  def ttl(role_id) do
-    data = Redis.hget("TTL:#{role_id}", __MODULE__)
-    data && Jason.decode!(data)
+  defmemo role_info(role_id), expires_in: 86_400_000 do
+    data = load(role_id)
+    role_info = data && to_common(data)
+    cachetime = Util.unixtime()
+    {cachetime, role_info}
   end
 
   def common_data() do

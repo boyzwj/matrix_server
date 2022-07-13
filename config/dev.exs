@@ -21,7 +21,7 @@ config :logger, :console,
 
 config :matrix_server,
   db_worker_num: 32,
-  role_interface_num: 16,
+  role_interface_num: 1,
   redis_blocks: [
     {"127.0.0.1", 6379},
     {"127.0.0.1", 6380},

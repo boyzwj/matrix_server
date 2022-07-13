@@ -55,7 +55,7 @@ defmodule NodeConfig do
   end
 
   def services("robot", _block_id) do
-    [{Robot.Sup, name: Robot.Sup}, {Robot.Manager, []}]
+    [Robot.Sup, Robot.Manager]
   end
 
   def services("develop", block_id) do

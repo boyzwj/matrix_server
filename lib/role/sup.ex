@@ -18,7 +18,8 @@ defmodule Role.Sup do
          name: Role.Worker.Sup,
          shutdown: 1000,
          strategy: :one_for_one
-       ]}
+       ]},
+      Role.Manager
       | role_inferfaces
     ]
 

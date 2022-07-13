@@ -147,7 +147,7 @@ defmodule GateWay.Session do
       crypto_key = Util.md5(session_id <> <<role_id::64-little>> <> @base_key)
       data = <<role_id::64-little, session_id::binary>> |> Util.enc_rc4(@base_key)
       packet = <<@proto_authorize, data::binary>>
-      Logger.debug("#{role_id} reg sid")
+      # Logger.debug("#{role_id} reg sid")
       :yes = :global.re_register_name(name(role_id), self())
       Redis.set("session:#{session_id}", role_id)
       Process.send(self(), {:send_packet, packet}, [:nosuspend])

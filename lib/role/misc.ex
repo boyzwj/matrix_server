@@ -49,6 +49,13 @@ defmodule Role.Misc do
   end
 
   def send_to(msg, sid) when is_pid(sid) do
+    msg =
+      if is_struct(msg) do
+        PB.encode!(msg)
+      else
+        msg
+      end
+
     Process.send(sid, {:send_buff, PB.encode!(msg)}, [:nosuspend])
     :ok
   end
