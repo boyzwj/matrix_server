@@ -93,9 +93,9 @@ defmodule Lobby.Room do
   @doc """
   开始游戏回调
   """
-  def start_game(~M{%M room_id, owner_id, map_id} = state, role_id) do
+  def start_game(~M{%M room_id, owner_id, map_id, positions} = state, role_id) do
     if role_id != owner_id, do: throw("你不是房主")
-    Dsa.Svr.start_game([map_id, room_id, role_ids()])
+    Dsa.Svr.start_game([map_id, room_id, positions])
     state |> ok()
   end
 

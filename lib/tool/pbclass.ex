@@ -49,18 +49,24 @@ defmodule PBClass do
   end
 
   def create() do
-    File.write!("#{:code.priv_dir(:matrix_server)}/static/PB.cs", content(), [:write])
+    File.write!(
+      "#{:code.priv_dir(:matrix_server)}/static/pbclass/game/PB.cs",
+      content(PB.PBID.proto_ids()),
+      [:write]
+    )
+
+    File.write!(
+      "#{:code.priv_dir(:matrix_server)}/static/pbclass/dsa/PB.cs",
+      content(Dsa.Pbid.proto_ids()),
+      [:write]
+    )
   end
 
-  def content() do
+  def content(ids) do
     constdef = ""
     type2id = ""
     id2parser = ""
-
-    {constdef, type2id, id2parser} =
-      PB.PBID.proto_ids()
-      |> create(constdef, type2id, id2parser)
-
+    {constdef, type2id, id2parser} = ids |> create(constdef, type2id, id2parser)
     template(constdef, type2id, id2parser)
   end
 
@@ -77,17 +83,17 @@ defmodule PBClass do
 
   defp gen_constdef(~M{id,_package,proto}) do
     const_name = String.replace(proto, ".", "")
-    "\t\tpublic const ushort #{const_name} = #{id};\n"
+    "        public const ushort #{const_name} = #{id};\n"
   end
 
   defp gen_type2id(~M{_id,_package,proto}) do
     const_name = String.replace(proto, ".", "")
 
-    "\t\t\t{typeof(#{proto}), #{const_name}},\n"
+    "            {typeof(#{proto}), #{const_name}},\n"
   end
 
   defp gen_id2parser(~M{_id,_package,proto}) do
     const_name = String.replace(proto, ".", "")
-    "\t\t\t{#{const_name},  #{proto}.Parser},\n"
+    "            {#{const_name},  #{proto}.Parser},\n"
   end
 end

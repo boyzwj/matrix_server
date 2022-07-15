@@ -34,6 +34,12 @@ defmodule Dsa.Svr do
     {:noreply, state}
   end
 
+  def handle_info({:udp, _socket, _ip, _port, data}, state) do
+    msg = Dsa.Pb.decode!(data)
+    state = Dsa.handle(state, msg)
+    {:noreply, state}
+  end
+
   @impl true
 
   def handle_call({func, arg}, _from, %Dsa{} = state) do
@@ -64,6 +70,7 @@ defmodule Dsa.Svr do
     end
   end
 
+  @impl true
   def handle_cast(msg, state) do
     Logger.warn("unhandle cast : #{msg}")
     {:noreply, state}

@@ -1,5 +1,5 @@
 defmodule Role.Mod.Role do
-  defstruct account: "", role_name: "", gender: 1, head_id: 1, avatar_id: 1, rank: 0
+  defstruct account: "", role_name: "", level: 1, gender: 1, head_id: 1, avatar_id: 1, rank: 0
   use Role.Mod
   use Memoize
 

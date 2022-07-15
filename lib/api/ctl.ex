@@ -58,21 +58,12 @@ defmodule Api.Ctl do
   end
 
   get "pbcs" do
-    text =
-      with {:ok, data} <- File.read("#{:code.priv_dir(:matrix_server)}/static/PB.cs") do
-        data
-      else
-        _ ->
-          "没有生成"
-      end
-      |> (&"""
-          # 协议定义
-          ## [download](/static/PB.cs)
-          ---------------------
-          ```lua
-          #{&1}
-          ```
-          """).()
+    text = """
+    # GAME协议定义
+    ## [download](/static/pbclass/game/PB.cs)
+    # DSA协议定义
+    ## [download](/static/pbclass/dsa/PB.cs)
+    """
 
     conn |> send_markdown(text)
   end
