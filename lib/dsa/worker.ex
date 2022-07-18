@@ -4,12 +4,14 @@ defmodule Dsa.Worker do
             room_id: nil,
             map_id: nil,
             positions: %{},
+            ready_states: %{},
             host: nil,
             out_port: nil,
             in_port: nil,
             pid: nil,
             os_pid: nil,
-            ref: nil
+            ref: nil,
+            ds_path: nil
 
   use Common
   use GenServer
@@ -54,31 +56,31 @@ defmodule Dsa.Worker do
     net_outPort = out_port
     net_inPort = out_port + 1
     net_dsaPort = 20081
+    user_name = System.shell("echo $USER") |> elem(0) |> String.replace("\n", "")
 
     args =
       for {k, v} <- ~m{game_mapId,direct_test,game_battleid,net_outPort,net_inPort,net_dsaPort} do
-        ["-#{k} #{v}"]
+        ["-#{k}", "#{v}"]
       end
-      |> Enum.join(" ")
+      |> Enum.concat()
 
     # Logger.info(args)
 
     {pid, ref} =
       Process.spawn(
         fn ->
-          System.shell("/home/$USER/ds_20220715_1436/ds #{args}", [])
+          System.cmd("/home/#{user_name}/ds_2022_07_18_1428/ds", args)
         end,
         [:monitor]
       )
 
-    positions
-    |> Map.values()
-    |> Enum.each(
-      &Role.Misc.send_to(~M{%Room.StartGame2C battle_id, host, port: out_port,map_id}, &1)
-    )
+    ready_states =
+      for {_, v} <- positions, v != nil, into: %{} do
+        {v, false}
+      end
 
     state =
-      ~M{%M battle_id,socket,room_id, map_id, positions, host, out_port,in_port: net_inPort,pid, ref}
+      ~M{%M battle_id,socket,room_id, map_id, positions,ready_states, host, out_port,in_port: net_inPort,pid, ref}
 
     {:ok, state}
   end
@@ -146,7 +148,7 @@ defmodule Dsa.Worker do
       head_shoot_only: false,
       stat_trak: false,
       game_level: 1,
-      win_type: 2,
+      win_type: :kills,
       win_value: 50
     }
 
@@ -155,9 +157,9 @@ defmodule Dsa.Worker do
     |> send_role_info()
   end
 
-  def handle(state, ~M{%Dsa.RoleReady2S battle_id, player_id} = msg) do
-    Logger.warn("receive #{inspect(msg)}")
-    state
+  def handle(~M{%M ready_states} = state, ~M{%Dsa.RoleReady2S player_id}) do
+    ready_states = Map.put(ready_states, player_id, true)
+    ~M{state| ready_states} |> check_start()
   end
 
   def handle(
@@ -220,6 +222,19 @@ defmodule Dsa.Worker do
         send2ds(state, %Dsa.RoleInfo2C{role: role})
       end
     end)
+
+    state
+  end
+
+  defp check_start(~M{%M room_id,battle_id,out_port,host,map_id,ready_states} = state) do
+    if ready_states |> Map.values() |> Enum.all?() do
+      Logger.debug("broad cast to room: #{room_id}")
+
+      Lobby.Room.Svr.broad_cast(
+        room_id,
+        ~M{%Room.StartGame2C battle_id, host, port: out_port,map_id}
+      )
+    end
 
     state
   end

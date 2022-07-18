@@ -7,10 +7,12 @@ defmodule Role.Mod.Room do
   """
   def h(~M{%M room_id, map_id}, %Room.Info2S{}) do
     with ~M{members,owner_id} <- Lobby.Svr.get_room_info(room_id) do
-      ~M{%Room.Info2C room_id,owner_id,map_id,members} |> sd()
+      room = ~M{%Room.Room  room_id,owner_id,map_id,members}
+      ~M{%Room.Info2C room} |> sd()
     else
       _ ->
-        ~M{%Room.Info2C room_id,map_id} |> sd()
+        room = ~M{%Room.Room  room_id,map_id}
+        ~M{%Room.Info2C room} |> sd()
     end
   end
 
@@ -78,8 +80,10 @@ defmodule Role.Mod.Room do
   end
 
   # 退出房间
-  def h(~M{%M room_id} = state, ~M{%Room.Exit2S }) do
+  def h(~M{%M room_id,map_id} = state, ~M{%Room.Exit2S }) do
     with :ok <- Lobby.Room.Svr.exit_room(room_id, role_id()) do
+      room = %Room.Room{room_id: 0, map_id: map_id}
+      %Room.Update2C{room: room} |> sd()
       {:ok, ~M{state| room_id: 0}}
     else
       {:error, error} ->

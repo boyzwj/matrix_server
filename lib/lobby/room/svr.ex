@@ -26,6 +26,11 @@ defmodule Lobby.Room.Svr do
     cast(room_id, {func, args})
   end
 
+  def broad_cast(room_id, args) do
+    {func, _} = __ENV__.function
+    cast(room_id, {func, args})
+  end
+
   @doc """
   退出房间
   """

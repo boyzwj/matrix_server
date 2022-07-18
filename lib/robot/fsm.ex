@@ -9,8 +9,8 @@ defmodule Robot.FSM do
   @status_reconnecting 4
 
   def server_list() do
-    # [{'127.0.0.1', 4001}]
-    [{'192.168.15.101', 4001}]
+    [{'127.0.0.1', 4001}]
+    # [{'192.168.15.101', 4001}]
     # [{'127.0.0.1', 4001},{'127.0.0.1', 4002}]
   end
 
@@ -44,8 +44,9 @@ defmodule Robot.FSM do
     # |> Worker.send_buf(%Role.Info2S{})
     # |> Worker.send_buf(%Role.OtherInfo2S{requests: requests})
     # |> Worker.send_buf(%Chat.Chat2S{content: "这是一条聊天信息"})
-    # |> Worker.send_buf(%Room.List2S{})
-    # |> Worker.send_buf(%Room.Create2S{map_id: 10_051_068, password: "fuck"})
+    |> Worker.send_buf(%Room.Create2S{map_id: 10_051_068, password: ""})
+    |> Worker.send_buf(%Room.List2S{})
+    |> Worker.send_buf(%Room.Exit2S{})
   end
 
   def loop(%Worker{status: @status_offline, addr: addr, port: port} = state) do

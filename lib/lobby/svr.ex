@@ -49,6 +49,7 @@ defmodule Lobby.Svr do
       :ets.new(Room, [
         :public,
         :named_table,
+        :set,
         {:keypos, 1},
         {:write_concurrency, true},
         {:read_concurrency, true}

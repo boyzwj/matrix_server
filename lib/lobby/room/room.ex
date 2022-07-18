@@ -2,9 +2,9 @@ defmodule Lobby.Room do
   defstruct room_id: 0,
             owner_id: nil,
             status: 0,
+            map_id: 0,
             positions: %{},
             member_num: 0,
-            map_id: 0,
             create_time: 0,
             password: "",
             last_game_time: 0
@@ -33,7 +33,7 @@ defmodule Lobby.Room do
 
   def to_common(data) do
     data = Map.from_struct(data)
-    data = struct(Common.Room, data)
+    data = struct(Room.Room, data)
     data
   end
 
@@ -159,19 +159,26 @@ defmodule Lobby.Room do
     |> set_role_ids()
   end
 
-  defp sync(~M{%M room_id, owner_id,map_id, positions} = state) do
+  defp sync(~M{%M room_id, owner_id,status,member_num, map_id, positions,create_time} = state) do
     members =
       for {k, v} <- positions, not is_nil(v) do
         %Room.Member{role_id: v, position: k}
       end
 
-    ~M{%Room.Update2C room_id,owner_id,map_id,members} |> broad_cast()
+    room = ~M{%Room.Room  room_id,owner_id,status,map_id,members,member_num,create_time}
+    ~M{%Room.Update2C room} |> broad_cast()
     state
   end
 
   defp del_role_id(role_id) do
     :ordsets.del_element(role_id, role_ids())
     |> set_role_ids()
+  end
+
+  def broad_cast(state, msg) do
+    Logger.debug("broad cast #{inspect(msg)}")
+    broad_cast(msg)
+    state |> ok()
   end
 
   defp broad_cast(msg) do

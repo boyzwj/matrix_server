@@ -24,7 +24,7 @@ defmodule Dsa do
   end
 
   def start_game(~M{%Dsa workers,socket} = state, [map_id, room_id, positions] = args) do
-    Logger.debug("start game, args: #{inspect(args)}")
+    Logger.info("start game, args: #{inspect(args)}")
 
     with {:ok, state, {host, port}} <- get_resource(state) do
       battle_id = GID.get_battle_id()
