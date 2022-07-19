@@ -5,150 +5,150 @@ namespace Script.Network
 {
     public class PB
     {
-        public const ushort RoleSetName2C = 18252;
-        public const ushort RoleSetName2S = 17898;
-        public const ushort RoleOtherInfo2C = 52306;
-        public const ushort RoleOtherInfo2S = 29210;
-        public const ushort RoleInfo2C = 65516;
-        public const ushort RoleInfo2S = 37482;
-        public const ushort RoomStartGame2C = 60718;
-        public const ushort RoomStartGame2S = 45263;
-        public const ushort RoomExit2C = 9866;
-        public const ushort RoomExit2S = 30965;
-        public const ushort RoomChangePosResult2C = 62553;
-        public const ushort RoomChangePosRefuse2C = 43016;
-        public const ushort RoomChangePosReply2S = 43952;
-        public const ushort RoomChangePosReq2C = 17644;
-        public const ushort RoomChangePos2S = 22506;
-        public const ushort RoomKick2C = 58060;
-        public const ushort RoomKick2S = 32533;
-        public const ushort RoomJoin2C = 54938;
-        public const ushort RoomJoin2S = 8120;
-        public const ushort RoomQuickJoin2S = 4770;
-        public const ushort RoomCreate2C = 33188;
-        public const ushort RoomCreate2S = 20173;
-        public const ushort RoomList2C = 37512;
-        public const ushort RoomList2S = 22718;
-        public const ushort RoomSetFilter2C = 42712;
-        public const ushort RoomSetFilter2S = 44574;
-        public const ushort RoomUpdate2C = 37580;
-        public const ushort RoomInfo2C = 11303;
-        public const ushort RoomInfo2S = 55363;
-        public const ushort ChatChat2C = 16613;
-        public const ushort ChatChat2S = 63158;
-        public const ushort SystemError2C = 18621;
-        public const ushort TeamBeginMatch2S = 1886;
-        public const ushort TeamExit2C = 16055;
-        public const ushort TeamExit2S = 52438;
-        public const ushort TeamJoin2C = 60395;
-        public const ushort TeamInviteReply2C = 25111;
-        public const ushort TeamInviteReply2S = 59005;
-        public const ushort TeamInviteRequest2C = 51076;
-        public const ushort TeamInvite2C = 6002;
-        public const ushort TeamInvite2S = 65065;
-        public const ushort TeamCreate2C = 55520;
-        public const ushort TeamCreate2S = 63763;
-        public const ushort TeamInfo2C = 49860;
-        public const ushort TeamInfo2S = 14921;
+        public const ushort PbmroleSetName2C = 33626;
+        public const ushort PbmroleSetName2S = 5545;
+        public const ushort PbmroleOtherInfo2C = 7824;
+        public const ushort PbmroleOtherInfo2S = 28869;
+        public const ushort PbmroleInfo2C = 36944;
+        public const ushort PbmroleInfo2S = 12067;
+        public const ushort PbmroomStartGame2C = 5358;
+        public const ushort PbmroomStartGame2S = 14753;
+        public const ushort PbmroomExit2C = 5193;
+        public const ushort PbmroomExit2S = 53057;
+        public const ushort PbmroomChangePosResult2C = 57022;
+        public const ushort PbmroomChangePosRefuse2C = 34405;
+        public const ushort PbmroomChangePosReply2S = 15571;
+        public const ushort PbmroomChangePosReq2C = 30904;
+        public const ushort PbmroomChangePos2S = 29611;
+        public const ushort PbmroomKick2C = 41689;
+        public const ushort PbmroomKick2S = 3464;
+        public const ushort PbmroomJoin2C = 32717;
+        public const ushort PbmroomJoin2S = 62685;
+        public const ushort PbmroomQuickJoin2S = 52306;
+        public const ushort PbmroomCreate2C = 10725;
+        public const ushort PbmroomCreate2S = 60937;
+        public const ushort PbmroomList2C = 28394;
+        public const ushort PbmroomList2S = 34037;
+        public const ushort PbmroomSetFilter2C = 8178;
+        public const ushort PbmroomSetFilter2S = 39132;
+        public const ushort PbmroomUpdate2C = 4276;
+        public const ushort PbmroomInfo2C = 11270;
+        public const ushort PbmroomInfo2S = 9300;
+        public const ushort PbmchatChat2C = 21063;
+        public const ushort PbmchatChat2S = 30949;
+        public const ushort PbmsystemError2C = 39255;
+        public const ushort PbmteamBeginMatch2S = 47184;
+        public const ushort PbmteamExit2C = 47963;
+        public const ushort PbmteamExit2S = 1742;
+        public const ushort PbmteamJoin2C = 12761;
+        public const ushort PbmteamInviteReply2C = 46527;
+        public const ushort PbmteamInviteReply2S = 63283;
+        public const ushort PbmteamInviteRequest2C = 57212;
+        public const ushort PbmteamInvite2C = 64065;
+        public const ushort PbmteamInvite2S = 6313;
+        public const ushort PbmteamCreate2C = 56640;
+        public const ushort PbmteamCreate2S = 54299;
+        public const ushort PbmteamInfo2C = 13874;
+        public const ushort PbmteamInfo2S = 29162;
 
 
         private static Dictionary<Type, ushort> _dic_id = new Dictionary<Type, ushort>()
         {
-            {typeof(Role.SetName2C), RoleSetName2C},
-            {typeof(Role.SetName2S), RoleSetName2S},
-            {typeof(Role.OtherInfo2C), RoleOtherInfo2C},
-            {typeof(Role.OtherInfo2S), RoleOtherInfo2S},
-            {typeof(Role.Info2C), RoleInfo2C},
-            {typeof(Role.Info2S), RoleInfo2S},
-            {typeof(Room.StartGame2C), RoomStartGame2C},
-            {typeof(Room.StartGame2S), RoomStartGame2S},
-            {typeof(Room.Exit2C), RoomExit2C},
-            {typeof(Room.Exit2S), RoomExit2S},
-            {typeof(Room.ChangePosResult2C), RoomChangePosResult2C},
-            {typeof(Room.ChangePosRefuse2C), RoomChangePosRefuse2C},
-            {typeof(Room.ChangePosReply2S), RoomChangePosReply2S},
-            {typeof(Room.ChangePosReq2C), RoomChangePosReq2C},
-            {typeof(Room.ChangePos2S), RoomChangePos2S},
-            {typeof(Room.Kick2C), RoomKick2C},
-            {typeof(Room.Kick2S), RoomKick2S},
-            {typeof(Room.Join2C), RoomJoin2C},
-            {typeof(Room.Join2S), RoomJoin2S},
-            {typeof(Room.QuickJoin2S), RoomQuickJoin2S},
-            {typeof(Room.Create2C), RoomCreate2C},
-            {typeof(Room.Create2S), RoomCreate2S},
-            {typeof(Room.List2C), RoomList2C},
-            {typeof(Room.List2S), RoomList2S},
-            {typeof(Room.SetFilter2C), RoomSetFilter2C},
-            {typeof(Room.SetFilter2S), RoomSetFilter2S},
-            {typeof(Room.Update2C), RoomUpdate2C},
-            {typeof(Room.Info2C), RoomInfo2C},
-            {typeof(Room.Info2S), RoomInfo2S},
-            {typeof(Chat.Chat2C), ChatChat2C},
-            {typeof(Chat.Chat2S), ChatChat2S},
-            {typeof(System.Error2C), SystemError2C},
-            {typeof(Team.BeginMatch2S), TeamBeginMatch2S},
-            {typeof(Team.Exit2C), TeamExit2C},
-            {typeof(Team.Exit2S), TeamExit2S},
-            {typeof(Team.Join2C), TeamJoin2C},
-            {typeof(Team.InviteReply2C), TeamInviteReply2C},
-            {typeof(Team.InviteReply2S), TeamInviteReply2S},
-            {typeof(Team.InviteRequest2C), TeamInviteRequest2C},
-            {typeof(Team.Invite2C), TeamInvite2C},
-            {typeof(Team.Invite2S), TeamInvite2S},
-            {typeof(Team.Create2C), TeamCreate2C},
-            {typeof(Team.Create2S), TeamCreate2S},
-            {typeof(Team.Info2C), TeamInfo2C},
-            {typeof(Team.Info2S), TeamInfo2S},
+            {typeof(Pbm.role.SetName2C), PbmroleSetName2C},
+            {typeof(Pbm.role.SetName2S), PbmroleSetName2S},
+            {typeof(Pbm.role.OtherInfo2C), PbmroleOtherInfo2C},
+            {typeof(Pbm.role.OtherInfo2S), PbmroleOtherInfo2S},
+            {typeof(Pbm.role.Info2C), PbmroleInfo2C},
+            {typeof(Pbm.role.Info2S), PbmroleInfo2S},
+            {typeof(Pbm.room.StartGame2C), PbmroomStartGame2C},
+            {typeof(Pbm.room.StartGame2S), PbmroomStartGame2S},
+            {typeof(Pbm.room.Exit2C), PbmroomExit2C},
+            {typeof(Pbm.room.Exit2S), PbmroomExit2S},
+            {typeof(Pbm.room.ChangePosResult2C), PbmroomChangePosResult2C},
+            {typeof(Pbm.room.ChangePosRefuse2C), PbmroomChangePosRefuse2C},
+            {typeof(Pbm.room.ChangePosReply2S), PbmroomChangePosReply2S},
+            {typeof(Pbm.room.ChangePosReq2C), PbmroomChangePosReq2C},
+            {typeof(Pbm.room.ChangePos2S), PbmroomChangePos2S},
+            {typeof(Pbm.room.Kick2C), PbmroomKick2C},
+            {typeof(Pbm.room.Kick2S), PbmroomKick2S},
+            {typeof(Pbm.room.Join2C), PbmroomJoin2C},
+            {typeof(Pbm.room.Join2S), PbmroomJoin2S},
+            {typeof(Pbm.room.QuickJoin2S), PbmroomQuickJoin2S},
+            {typeof(Pbm.room.Create2C), PbmroomCreate2C},
+            {typeof(Pbm.room.Create2S), PbmroomCreate2S},
+            {typeof(Pbm.room.List2C), PbmroomList2C},
+            {typeof(Pbm.room.List2S), PbmroomList2S},
+            {typeof(Pbm.room.SetFilter2C), PbmroomSetFilter2C},
+            {typeof(Pbm.room.SetFilter2S), PbmroomSetFilter2S},
+            {typeof(Pbm.room.Update2C), PbmroomUpdate2C},
+            {typeof(Pbm.room.Info2C), PbmroomInfo2C},
+            {typeof(Pbm.room.Info2S), PbmroomInfo2S},
+            {typeof(Pbm.chat.Chat2C), PbmchatChat2C},
+            {typeof(Pbm.chat.Chat2S), PbmchatChat2S},
+            {typeof(Pbm.system.Error2C), PbmsystemError2C},
+            {typeof(Pbm.team.BeginMatch2S), PbmteamBeginMatch2S},
+            {typeof(Pbm.team.Exit2C), PbmteamExit2C},
+            {typeof(Pbm.team.Exit2S), PbmteamExit2S},
+            {typeof(Pbm.team.Join2C), PbmteamJoin2C},
+            {typeof(Pbm.team.InviteReply2C), PbmteamInviteReply2C},
+            {typeof(Pbm.team.InviteReply2S), PbmteamInviteReply2S},
+            {typeof(Pbm.team.InviteRequest2C), PbmteamInviteRequest2C},
+            {typeof(Pbm.team.Invite2C), PbmteamInvite2C},
+            {typeof(Pbm.team.Invite2S), PbmteamInvite2S},
+            {typeof(Pbm.team.Create2C), PbmteamCreate2C},
+            {typeof(Pbm.team.Create2S), PbmteamCreate2S},
+            {typeof(Pbm.team.Info2C), PbmteamInfo2C},
+            {typeof(Pbm.team.Info2S), PbmteamInfo2S},
 
         };
 
         private static Dictionary<ushort, MessageParser> _dic_parser = new Dictionary<ushort, MessageParser>()
         {
-            {RoleSetName2C,  Role.SetName2C.Parser},
-            {RoleSetName2S,  Role.SetName2S.Parser},
-            {RoleOtherInfo2C,  Role.OtherInfo2C.Parser},
-            {RoleOtherInfo2S,  Role.OtherInfo2S.Parser},
-            {RoleInfo2C,  Role.Info2C.Parser},
-            {RoleInfo2S,  Role.Info2S.Parser},
-            {RoomStartGame2C,  Room.StartGame2C.Parser},
-            {RoomStartGame2S,  Room.StartGame2S.Parser},
-            {RoomExit2C,  Room.Exit2C.Parser},
-            {RoomExit2S,  Room.Exit2S.Parser},
-            {RoomChangePosResult2C,  Room.ChangePosResult2C.Parser},
-            {RoomChangePosRefuse2C,  Room.ChangePosRefuse2C.Parser},
-            {RoomChangePosReply2S,  Room.ChangePosReply2S.Parser},
-            {RoomChangePosReq2C,  Room.ChangePosReq2C.Parser},
-            {RoomChangePos2S,  Room.ChangePos2S.Parser},
-            {RoomKick2C,  Room.Kick2C.Parser},
-            {RoomKick2S,  Room.Kick2S.Parser},
-            {RoomJoin2C,  Room.Join2C.Parser},
-            {RoomJoin2S,  Room.Join2S.Parser},
-            {RoomQuickJoin2S,  Room.QuickJoin2S.Parser},
-            {RoomCreate2C,  Room.Create2C.Parser},
-            {RoomCreate2S,  Room.Create2S.Parser},
-            {RoomList2C,  Room.List2C.Parser},
-            {RoomList2S,  Room.List2S.Parser},
-            {RoomSetFilter2C,  Room.SetFilter2C.Parser},
-            {RoomSetFilter2S,  Room.SetFilter2S.Parser},
-            {RoomUpdate2C,  Room.Update2C.Parser},
-            {RoomInfo2C,  Room.Info2C.Parser},
-            {RoomInfo2S,  Room.Info2S.Parser},
-            {ChatChat2C,  Chat.Chat2C.Parser},
-            {ChatChat2S,  Chat.Chat2S.Parser},
-            {SystemError2C,  System.Error2C.Parser},
-            {TeamBeginMatch2S,  Team.BeginMatch2S.Parser},
-            {TeamExit2C,  Team.Exit2C.Parser},
-            {TeamExit2S,  Team.Exit2S.Parser},
-            {TeamJoin2C,  Team.Join2C.Parser},
-            {TeamInviteReply2C,  Team.InviteReply2C.Parser},
-            {TeamInviteReply2S,  Team.InviteReply2S.Parser},
-            {TeamInviteRequest2C,  Team.InviteRequest2C.Parser},
-            {TeamInvite2C,  Team.Invite2C.Parser},
-            {TeamInvite2S,  Team.Invite2S.Parser},
-            {TeamCreate2C,  Team.Create2C.Parser},
-            {TeamCreate2S,  Team.Create2S.Parser},
-            {TeamInfo2C,  Team.Info2C.Parser},
-            {TeamInfo2S,  Team.Info2S.Parser},
+            {PbmroleSetName2C,  Pbm.role.SetName2C.Parser},
+            {PbmroleSetName2S,  Pbm.role.SetName2S.Parser},
+            {PbmroleOtherInfo2C,  Pbm.role.OtherInfo2C.Parser},
+            {PbmroleOtherInfo2S,  Pbm.role.OtherInfo2S.Parser},
+            {PbmroleInfo2C,  Pbm.role.Info2C.Parser},
+            {PbmroleInfo2S,  Pbm.role.Info2S.Parser},
+            {PbmroomStartGame2C,  Pbm.room.StartGame2C.Parser},
+            {PbmroomStartGame2S,  Pbm.room.StartGame2S.Parser},
+            {PbmroomExit2C,  Pbm.room.Exit2C.Parser},
+            {PbmroomExit2S,  Pbm.room.Exit2S.Parser},
+            {PbmroomChangePosResult2C,  Pbm.room.ChangePosResult2C.Parser},
+            {PbmroomChangePosRefuse2C,  Pbm.room.ChangePosRefuse2C.Parser},
+            {PbmroomChangePosReply2S,  Pbm.room.ChangePosReply2S.Parser},
+            {PbmroomChangePosReq2C,  Pbm.room.ChangePosReq2C.Parser},
+            {PbmroomChangePos2S,  Pbm.room.ChangePos2S.Parser},
+            {PbmroomKick2C,  Pbm.room.Kick2C.Parser},
+            {PbmroomKick2S,  Pbm.room.Kick2S.Parser},
+            {PbmroomJoin2C,  Pbm.room.Join2C.Parser},
+            {PbmroomJoin2S,  Pbm.room.Join2S.Parser},
+            {PbmroomQuickJoin2S,  Pbm.room.QuickJoin2S.Parser},
+            {PbmroomCreate2C,  Pbm.room.Create2C.Parser},
+            {PbmroomCreate2S,  Pbm.room.Create2S.Parser},
+            {PbmroomList2C,  Pbm.room.List2C.Parser},
+            {PbmroomList2S,  Pbm.room.List2S.Parser},
+            {PbmroomSetFilter2C,  Pbm.room.SetFilter2C.Parser},
+            {PbmroomSetFilter2S,  Pbm.room.SetFilter2S.Parser},
+            {PbmroomUpdate2C,  Pbm.room.Update2C.Parser},
+            {PbmroomInfo2C,  Pbm.room.Info2C.Parser},
+            {PbmroomInfo2S,  Pbm.room.Info2S.Parser},
+            {PbmchatChat2C,  Pbm.chat.Chat2C.Parser},
+            {PbmchatChat2S,  Pbm.chat.Chat2S.Parser},
+            {PbmsystemError2C,  Pbm.system.Error2C.Parser},
+            {PbmteamBeginMatch2S,  Pbm.team.BeginMatch2S.Parser},
+            {PbmteamExit2C,  Pbm.team.Exit2C.Parser},
+            {PbmteamExit2S,  Pbm.team.Exit2S.Parser},
+            {PbmteamJoin2C,  Pbm.team.Join2C.Parser},
+            {PbmteamInviteReply2C,  Pbm.team.InviteReply2C.Parser},
+            {PbmteamInviteReply2S,  Pbm.team.InviteReply2S.Parser},
+            {PbmteamInviteRequest2C,  Pbm.team.InviteRequest2C.Parser},
+            {PbmteamInvite2C,  Pbm.team.Invite2C.Parser},
+            {PbmteamInvite2S,  Pbm.team.Invite2S.Parser},
+            {PbmteamCreate2C,  Pbm.team.Create2C.Parser},
+            {PbmteamCreate2S,  Pbm.team.Create2S.Parser},
+            {PbmteamInfo2C,  Pbm.team.Info2C.Parser},
+            {PbmteamInfo2S,  Pbm.team.Info2S.Parser},
 
         };
         public static ushort GetCmdID(IMessage obj)

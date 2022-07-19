@@ -3,29 +3,29 @@ defmodule Role.Mod.Role do
   use Role.Mod
   use Memoize
 
-  def h(state, ~M{%Role.Info2S }) do
+  def h(state, ~M{%Pbm.Role.Info2S }) do
     with ~M{%M } = data <- state do
       role_info = to_common(data)
-      ~M{%Role.Info2C role_info} |> sd()
+      ~M{%Pbm.Role.Info2C role_info} |> sd()
     else
       _ ->
         :ignore
     end
   end
 
-  def h(_state, ~M{%Role.OtherInfo2S requests}) do
+  def h(_state, ~M{%Pbm.Role.OtherInfo2S requests}) do
     infos =
       for ~M{role_id,timestamp} <- requests do
         {cachetime, role_info} = role_info(role_id)
 
         if timestamp < cachetime do
-          %Role.InfoReply{role_id: role_id, timestamp: cachetime, role_info: role_info}
+          %Pbm.Role.InfoReply{role_id: role_id, timestamp: cachetime, role_info: role_info}
         else
-          %Role.InfoReply{role_id: role_id, timestamp: timestamp}
+          %Pbm.Role.InfoReply{role_id: role_id, timestamp: timestamp}
         end
       end
 
-    ~M{%Role.OtherInfo2C  infos} |> sd()
+    ~M{%Pbm.Role.OtherInfo2C  infos} |> sd()
     :ok
   end
 

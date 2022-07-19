@@ -70,7 +70,7 @@ defmodule Lobby.Room do
 
     member_num = member_num - 1
     del_role_id(t_role_id)
-    %Room.Kick2C{role_id: t_role_id} |> broad_cast()
+    %Pbm.Room.Kick2C{role_id: t_role_id} |> broad_cast()
     ~M{state|positions,member_num} |> sync() |> ok()
   end
 
@@ -78,7 +78,7 @@ defmodule Lobby.Room do
     if password != "" && password != tpassword, do: throw("房间密码不正确")
     if member_num >= length(@positions), do: throw("房间已满")
     state = do_join(state, role_id)
-    ~M{%Room.Join2C role_id, room_id} |> broad_cast()
+    ~M{%Pbm.Room.Join2C role_id, room_id} |> broad_cast()
     state |> sync() |> ok()
   end
 
@@ -110,7 +110,7 @@ defmodule Lobby.Room do
 
       member_num = member_num - 1
       del_role_id(role_id)
-      ~M{%Room.Exit2C role_id} |> broad_cast()
+      ~M{%Pbm.Room.Exit2C role_id} |> broad_cast()
 
       owner_id =
         if role_id == owner_id do
@@ -162,11 +162,11 @@ defmodule Lobby.Room do
   defp sync(~M{%M room_id, owner_id,status,member_num, map_id, positions,create_time} = state) do
     members =
       for {k, v} <- positions, not is_nil(v) do
-        %Room.Member{role_id: v, position: k}
+        %Pbm.Room.Member{role_id: v, position: k}
       end
 
-    room = ~M{%Room.Room  room_id,owner_id,status,map_id,members,member_num,create_time}
-    ~M{%Room.Update2C room} |> broad_cast()
+    room = ~M{%Pbm.Room.Room  room_id,owner_id,status,map_id,members,member_num,create_time}
+    ~M{%Pbm.Room.Update2C room} |> broad_cast()
     state
   end
 

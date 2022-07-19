@@ -51,7 +51,7 @@ defmodule Lobby do
     end
 
     rooms = :ets.foldl(f, [], Room)
-    ~M{%Room.List2C rooms} |> Role.Misc.send_to(role_id)
+    ~M{%Pbm.Room.List2C rooms} |> Role.Misc.send_to(role_id)
     state |> ok()
   end
 

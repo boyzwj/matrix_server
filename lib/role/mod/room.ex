@@ -5,42 +5,42 @@ defmodule Role.Mod.Room do
   @doc """
   协议处理
   """
-  def h(~M{%M room_id, map_id}, %Room.Info2S{}) do
+  def h(~M{%M room_id, map_id}, %Pbm.Room.Info2S{}) do
     with ~M{members,owner_id} <- Lobby.Svr.get_room_info(room_id) do
-      room = ~M{%Room.Room  room_id,owner_id,map_id,members}
-      ~M{%Room.Info2C room} |> sd()
+      room = ~M{%Pbm.Room.Room  room_id,owner_id,map_id,members}
+      ~M{%Pbm.Room.Info2C room} |> sd()
     else
       _ ->
-        room = ~M{%Room.Room  room_id,map_id}
-        ~M{%Room.Info2C room} |> sd()
+        room = ~M{%Pbm.Room.Room  room_id,map_id}
+        ~M{%Pbm.Room.Info2C room} |> sd()
     end
   end
 
-  def h(~M{%M } = state, ~M{%Room.SetFilter2S map_id}) do
-    ~M{%Room.SetFilter2C map_id} |> sd()
+  def h(~M{%M } = state, ~M{%Pbm.Room.SetFilter2S map_id}) do
+    ~M{%Pbm.Room.SetFilter2C map_id} |> sd()
     {:ok, ~M{state| map_id}}
   end
 
   # 请求房间列表
-  def h(~M{%M map_id}, ~M{%Room.List2S }) do
+  def h(~M{%M map_id}, ~M{%Pbm.Room.List2S }) do
     Lobby.Svr.get_room_list([role_id(), map_id])
     :ok
   end
 
-  def h(~M{%M room_id} = state, ~M{%Room.Create2S map_id, password}) do
+  def h(~M{%M room_id} = state, ~M{%Pbm.Room.Create2S map_id, password}) do
     if room_id != 0 do
       throw("已经在房间里了!")
     end
 
     with {:ok, room_id} <- Lobby.Svr.create_room([role_id(), map_id, password]) do
-      ~M{%Room.Create2C room_id} |> sd()
+      ~M{%Pbm.Room.Create2C room_id} |> sd()
       {:ok, ~M{state | room_id}}
     else
       {:error, error} -> throw(error)
     end
   end
 
-  def h(~M{%M room_id: cur_room_id} = state, ~M{%Room.Join2S room_id,password}) do
+  def h(~M{%M room_id: cur_room_id} = state, ~M{%Pbm.Room.Join2S room_id,password}) do
     if cur_room_id != 0, do: throw("已经在房间里了")
 
     with :ok <- Lobby.Room.Svr.join(room_id, [role_id(), password]) do
@@ -50,7 +50,7 @@ defmodule Role.Mod.Room do
     end
   end
 
-  def h(~M{%M room_id,map_id} = state, ~M{%Room.QuickJoin2S }) do
+  def h(~M{%M room_id,map_id} = state, ~M{%Pbm.Room.QuickJoin2S }) do
     if room_id > 0, do: throw("已经在房间里了!")
 
     with {:ok, room_id} <- Lobby.Svr.quick_join([role_id(), map_id]) do
@@ -62,7 +62,7 @@ defmodule Role.Mod.Room do
   end
 
   # 踢人
-  def h(~M{%M room_id}, ~M{%Room.Kick2S role_id}) do
+  def h(~M{%M room_id}, ~M{%Pbm.Room.Kick2S role_id}) do
     with :ok <- Lobby.Room.Svr.kick(room_id, [role_id(), role_id]) do
       :ok
     else
@@ -71,7 +71,7 @@ defmodule Role.Mod.Room do
   end
 
   # 换位
-  def h(~M{%M room_id}, ~M{%Room.ChangePos2S position}) do
+  def h(~M{%M room_id}, ~M{%Pbm.Room.ChangePos2S position}) do
     with :ok <- Lobby.Room.Svr.change_pos(room_id, [role_id(), position]) do
       :ok
     else
@@ -80,10 +80,10 @@ defmodule Role.Mod.Room do
   end
 
   # 退出房间
-  def h(~M{%M room_id,map_id} = state, ~M{%Room.Exit2S }) do
+  def h(~M{%M room_id,map_id} = state, ~M{%Pbm.Room.Exit2S }) do
     with :ok <- Lobby.Room.Svr.exit_room(room_id, role_id()) do
-      room = %Room.Room{room_id: 0, map_id: map_id}
-      %Room.Update2C{room: room} |> sd()
+      room = %Pbm.Room.Room{room_id: 0, map_id: map_id}
+      %Pbm.Room.Update2C{room: room} |> sd()
       {:ok, ~M{state| room_id: 0}}
     else
       {:error, error} ->
@@ -92,7 +92,8 @@ defmodule Role.Mod.Room do
   end
 
   # 开始游戏
-  def h(~M{%M room_id}, ~M{%Room.StartGame2S }) do
+
+  def h(~M{%M room_id}, ~M{%Pbm.Room.StartGame2S }) do
     with :ok <- Lobby.Room.Svr.start_game(room_id, role_id()) do
       :ok
     else

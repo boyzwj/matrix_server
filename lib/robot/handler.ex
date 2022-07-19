@@ -1,7 +1,7 @@
 defmodule Robot.Handler do
   use Common
 
-  def h(state, %Chat.Chat2C{content: content}) do
+  def h(state, %Pbm.Chat.Chat2C{content: content}) do
     Logger.debug("收到聊天信息: " <> content)
     state
   end

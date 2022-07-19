@@ -190,7 +190,7 @@ defmodule Dsa.Worker do
     positions
     |> Enum.each(fn {pos, id} ->
       if id != nil do
-        {_, ~M{%Common.RoleInfo role_name,level,avatar_id}} = Role.Mod.Role.role_info(id)
+        {_, ~M{%Pbm.Common.RoleInfo role_name,level,avatar_id}} = Role.Mod.Role.role_info(id)
 
         camp_id =
           cond do
@@ -232,7 +232,7 @@ defmodule Dsa.Worker do
 
       Lobby.Room.Svr.broad_cast(
         room_id,
-        ~M{%Room.StartGame2C battle_id, host, port: out_port,map_id}
+        ~M{%Pbm.Room.StartGame2C battle_id, host, port: out_port,map_id}
       )
     end
 

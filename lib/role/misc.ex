@@ -65,7 +65,7 @@ defmodule Role.Misc do
   进程内错误码发送接口
   """
   def sd_err(error_code, error_msg \\ nil) do
-    msg = %System.Error2C{error_code: error_code, error_msg: error_msg}
+    msg = %Pbm.System.Error2C{error_code: error_code, error_msg: error_msg}
     send_to(msg, sid())
   end
 end
