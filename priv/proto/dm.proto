@@ -1,0 +1,10 @@
+syntax = "proto3";
+  package dm;
+  message Baz{
+
+  }
+  message Foo2C {
+    uint32 a = 1;
+    map<uint32, uint32> b = 2;
+    string ct = 3;
+  }

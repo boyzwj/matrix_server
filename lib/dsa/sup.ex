@@ -7,8 +7,11 @@ defmodule Dsa.Sup do
 
   @impl true
   def init(_opts) do
+    host = System.get_env("DSA_HOST") || "127.0.0.1"
+    port = String.to_integer(System.get_env("DSA_PORT") || "20001")
+
     children = [
-      {Dsa.Svr, []},
+      {Dsa.Svr, [host, port]},
       {DynamicSupervisor,
        [
          name: Dsa.Worker.Sup,

@@ -1,7 +1,6 @@
 defmodule Lobby.Dsa do
   use GenServer
   use Common
-  alias Lobby.Dsa
 
   defstruct socket: nil,
             transport: nil,
@@ -42,8 +41,18 @@ defmodule Lobby.Dsa do
 
   @impl true
   def handle_info({:tcp, socket, data}, ~M{socket,transport,recv_buffer} = state) do
-    # state = state |> decode(recv_buffer <> data)
+    state = state |> decode(recv_buffer <> data)
     :ok = transport.setopts(socket, active: :once)
     {:noreply, state, @timeout}
+  end
+
+  defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
+    state |> decode_body(data) |> decode(left)
+  end
+
+  defp decode(state, recv_buffer), do: ~M{state | recv_buffer}
+
+  defp decode_body(state, data) do
+    state
   end
 end

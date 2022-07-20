@@ -3,7 +3,7 @@ defmodule Dsa.Worker do
             socket: nil,
             room_id: nil,
             map_id: nil,
-            positions: %{},
+            members: %{},
             ready_states: %{},
             host: nil,
             out_port: nil,
@@ -49,14 +49,13 @@ defmodule Dsa.Worker do
   end
 
   @impl true
-  def init([battle_id, socket, room_id, map_id, positions, host, out_port]) do
+  def init([battle_id, socket, room_id, map_id, members, host, out_port]) do
     game_mapId = map_id
     direct_test = 0
     game_battleid = battle_id
     net_outPort = out_port
     net_inPort = out_port + 1
     net_dsaPort = 20081
-    user_name = System.shell("echo $USER") |> elem(0) |> String.replace("\n", "")
 
     args =
       for {k, v} <- ~m{game_mapId,direct_test,game_battleid,net_outPort,net_inPort,net_dsaPort} do
@@ -65,22 +64,28 @@ defmodule Dsa.Worker do
       |> Enum.concat()
 
     # Logger.info(args)
+    ds_path =
+      System.user_home!()
+      |> File.ls!()
+      |> Enum.filter(&String.starts_with?(&1, "ds"))
+      |> Enum.sort(:desc)
+      |> List.first()
 
     {pid, ref} =
       Process.spawn(
         fn ->
-          System.cmd("/home/#{user_name}/ds_2022_07_18_1428/ds", args)
+          System.cmd("#{System.user_home!()}/#{ds_path}/ds", args)
         end,
         [:monitor]
       )
 
     ready_states =
-      for {_, v} <- positions, v != nil, into: %{} do
+      for {_, v} <- members, v != nil, into: %{} do
         {v, false}
       end
 
     state =
-      ~M{%M battle_id,socket,room_id, map_id, positions,ready_states, host, out_port,in_port: net_inPort,pid, ref}
+      ~M{%M battle_id,socket,room_id, map_id, members,ready_states, host, out_port,in_port: net_inPort,pid, ref}
 
     {:ok, state}
   end
@@ -123,7 +128,7 @@ defmodule Dsa.Worker do
     pid |> GenServer.call(msg)
   end
 
-  def handle(state, ~M{%Dsa.Start2S pid,result} = msg) do
+  def handle(state, ~M{%Pbm.Dsa.Start2S pid,result} = msg) do
     Logger.warn("receive #{inspect(msg)}")
 
     if result == 0 do
@@ -135,10 +140,10 @@ defmodule Dsa.Worker do
     end
   end
 
-  def handle(~M{%M } = state, ~M{%Dsa.BattleInfo2S battle_id} = msg) do
+  def handle(~M{%M } = state, ~M{%Pbm.Dsa.BattleInfo2S battle_id} = msg) do
     Logger.debug("receive #{inspect(msg)}")
 
-    battle_info = %Dsa.BattleInfo{
+    battle_info = %Pbm.Dsa.BattleInfo{
       auto_armor: true,
       kill_award_double: false,
       init_hp: 100,
@@ -153,24 +158,24 @@ defmodule Dsa.Worker do
     }
 
     state
-    |> send2ds(~M{%Dsa.BattleInfo2C battle_id,battle_info})
+    |> send2ds(~M{%Pbm.Dsa.BattleInfo2C battle_id,battle_info})
     |> send_role_info()
   end
 
-  def handle(~M{%M ready_states} = state, ~M{%Dsa.RoleReady2S player_id}) do
+  def handle(~M{%M ready_states} = state, ~M{%Pbm.Dsa.RoleReady2S player_id}) do
     ready_states = Map.put(ready_states, player_id, true)
     ~M{state| ready_states} |> check_start()
   end
 
   def handle(
         state,
-        ~M{%Dsa.Heartbeat2S battle_id,pid,defender_score,attacker_score,online_players} = msg
+        ~M{%Pbm.Dsa.Heartbeat2S battle_id,pid,defender_score,attacker_score,online_players} = msg
       ) do
     Logger.warn("receive #{inspect(msg)}")
     state
   end
 
-  def handle(state, ~M{%Dsa.PlayerQuit2S battle_id, player_id,reason} = msg) do
+  def handle(state, ~M{%Pbm.Dsa.PlayerQuit2S battle_id, player_id,reason} = msg) do
     Logger.warn("receive #{inspect(msg)}")
     state
   end
@@ -186,8 +191,8 @@ defmodule Dsa.Worker do
     state
   end
 
-  defp send_role_info(~M{%M positions} = state) do
-    positions
+  defp send_role_info(~M{%M members} = state) do
+    members
     |> Enum.each(fn {pos, id} ->
       if id != nil do
         {_, ~M{%Pbm.Common.RoleInfo role_name,level,avatar_id}} = Role.Mod.Role.role_info(id)
@@ -202,7 +207,7 @@ defmodule Dsa.Worker do
             true -> 8
           end
 
-        base_info = %Dsa.RoleBaseInfo{
+        base_info = %Pbm.Dsa.RoleBaseInfo{
           uid: id,
           name: role_name,
           group_id: 1,
@@ -211,7 +216,7 @@ defmodule Dsa.Worker do
           level: level
         }
 
-        role = %Dsa.Role{
+        role = %Pbm.Dsa.Role{
           replace_uid: id,
           ai_property_type: 1,
           robot: 0,
@@ -219,7 +224,7 @@ defmodule Dsa.Worker do
           base_info: base_info
         }
 
-        send2ds(state, %Dsa.RoleInfo2C{role: role})
+        send2ds(state, %Pbm.Dsa.RoleInfo2C{role: role})
       end
     end)
 

@@ -6,7 +6,7 @@ defmodule Role.Mod.Room do
   协议处理
   """
   def h(~M{%M room_id, map_id}, %Pbm.Room.Info2S{}) do
-    with ~M{members,owner_id} <- Lobby.Svr.get_room_info(room_id) do
+    with ~M{%Lobby.Room members,owner_id} <- Lobby.Svr.get_room_info(room_id) do
       room = ~M{%Pbm.Room.Room  room_id,owner_id,map_id,members}
       ~M{%Pbm.Room.Info2C room} |> sd()
     else
@@ -58,6 +58,15 @@ defmodule Role.Mod.Room do
     else
       {:error, error} ->
         throw(error)
+    end
+  end
+
+  # 设置房间模式
+  def h(~M{%M room_id}, ~M{%Pbm.Room.SetRoomMap2S map_id}) do
+    with :ok <- Lobby.Room.Svr.set_map(room_id, [role_id(), map_id]) do
+      :ok
+    else
+      {:error, error} -> throw(error)
     end
   end
 

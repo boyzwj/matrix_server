@@ -1,25 +1,14 @@
-defmodule Dsa.Pbid do
-  @path "./proto/dsa"
-  version =
-    for filename <-
-          File.ls!(@path) |> Enum.filter(&String.ends_with?(&1, ".proto")) |> Enum.sort() do
-      data = File.read!("#{@path}/#{filename}")
-      Util.md5(data)
-    end
-    |> Enum.join()
-    |> Util.md5()
-    |> Base.encode16(case: :lower)
-
-  @proto_version version
-
-  def proto_version(), do: @proto_version
-
+defmodule Tool.Pbid do
   @status_content 0
   @status_line_comment 1
   @status_range_comment 2
 
-  def proto_ids() do
-    file_list = File.ls!(@path) |> Enum.filter(&String.ends_with?(&1, ".proto"))
+  def proto_ids(path, max_proto_id \\ 65536) do
+    file_list =
+      path
+      |> File.ls!()
+      |> Enum.filter(&String.ends_with?(&1, ".proto"))
+      |> Enum.map(&"#{path}/#{&1}")
 
     %{protos: protos} =
       read_files(
@@ -30,7 +19,7 @@ defmodule Dsa.Pbid do
     for {proto, package} <- protos do
       # id = :erlang.phash2(proto, 65536)
       <<seed::128>> = Util.md5(proto)
-      id = rem(seed, 65536)
+      id = rem(seed, max_proto_id)
       %{id: id, proto: proto, package: package}
     end
     |> proto_ids_duplicate_check()
@@ -57,7 +46,7 @@ defmodule Dsa.Pbid do
   end
 
   defp read_file(result, filename) do
-    data = File.read!("#{@path}/#{filename}")
+    data = File.read!(filename)
     do_read(result, data, @status_content)
   end
 
@@ -89,9 +78,9 @@ defmodule Dsa.Pbid do
     [package, data] = String.split(data, ";", parts: 2)
 
     module =
-      String.split(package, "_")
+      String.split(package, ".")
       |> Enum.map(&upper_first(&1))
-      |> Enum.join()
+      |> Enum.join(".")
 
     %{result | package: package, module: module} |> do_read(data, status)
   end

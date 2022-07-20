@@ -51,13 +51,13 @@ defmodule PBClass do
   def create() do
     File.write!(
       "#{:code.priv_dir(:matrix_server)}/static/pbclass/game/PB.cs",
-      content(PB.PBID.proto_ids()),
+      content(Tool.Pbid.proto_ids("./proto")),
       [:write]
     )
 
     File.write!(
       "#{:code.priv_dir(:matrix_server)}/static/pbclass/dsa/PB.cs",
-      content(Dsa.Pbid.proto_ids()),
+      content(Tool.Pbid.proto_ids("./proto/dsa")),
       [:write]
     )
   end

@@ -49,7 +49,7 @@ defmodule Role.Mod.Role do
 
   defp to_common(data) do
     data = Map.from_struct(data)
-    data = struct(Common.RoleInfo, data)
+    data = %Pbm.Common.RoleInfo{}.__struct__ |> struct(data)
     ~M{data | role_id()}
   end
 end

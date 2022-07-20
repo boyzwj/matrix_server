@@ -20,7 +20,7 @@ defmodule PBLua do
       |> Enum.join(",\n\t")
 
     pt =
-      for ~M{id,proto} <- PB.PBID.proto_ids() do
+      for ~M{id,proto} <- Tool.Pbid.proto_ids("./proto") do
         proto
         |> String.split(".")
         |> Enum.map(&String.downcase(&1))
@@ -30,7 +30,7 @@ defmodule PBLua do
       |> Enum.join(",\n\t")
 
     msg_names =
-      for ~M{id,proto} <- PB.PBID.proto_ids() do
+      for ~M{id,proto} <- Tool.Pbid.proto_ids("./proto") do
         proto
         |> downcase_first()
         |> (&"[#{id}] = [[#{&1}]]").()

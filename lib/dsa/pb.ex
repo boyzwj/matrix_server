@@ -7,11 +7,11 @@ defmodule Dsa.Pb do
       |> Enum.filter(&String.ends_with?(&1, ".proto"))
       |> Enum.map(&"./proto/dsa/#{&1}")
 
-  proto_ids = Dsa.Pbid.proto_ids()
+  proto_ids = Tool.Pbid.proto_ids("./proto/dsa")
 
   pkgs =
     for %{id: _id, proto: proto} <- proto_ids, m = Module.concat([proto]), into: MapSet.new() do
-      [pkg, _method] = String.split(proto, ".", parts: 2)
+      [_namespace, pkg, _method] = String.split(proto, ".", parts: 3)
       mod = Module.concat(["Elixir", "Role", "Mod", pkg])
 
       def mod(unquote(m)) do
@@ -33,7 +33,7 @@ defmodule Dsa.Pb do
   end
 
   for %{id: id, proto: proto} <- proto_ids, m = Module.concat([proto]) do
-    [pkg, _method] = String.split(proto, ".", parts: 2)
+    [_namespace, pkg, _method] = String.split(proto, ".", parts: 3)
     handler = Module.concat(["PP", pkg])
 
     def proto_module(unquote(id)) do

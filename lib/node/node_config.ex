@@ -38,8 +38,7 @@ defmodule NodeConfig do
       },
       {Role.Sup, []},
       {Redis.Manager, []},
-      {Lobby.Sup, []},
-      {Dsa.Sup, []}
+      {Lobby.Sup, []}
     ]
   end
 
@@ -56,6 +55,10 @@ defmodule NodeConfig do
 
   def services("robot", _block_id) do
     [Robot.Sup, Robot.Manager]
+  end
+
+  def services("dsa", _block_id) do
+    [{Dsa.Sup, []}]
   end
 
   def services("develop", block_id) do

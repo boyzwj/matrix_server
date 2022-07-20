@@ -11,6 +11,14 @@ defmodule Lobby.Room.Svr do
   end
 
   @doc """
+  设置房间地图
+  """
+  def set_map(room_id, args) do
+    {func, _} = __ENV__.function
+    cast(room_id, {func, args})
+  end
+
+  @doc """
   踢人
   """
   def kick(room_id, args) do

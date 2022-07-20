@@ -3,7 +3,7 @@ defmodule Lobby.Room do
             owner_id: nil,
             status: 0,
             map_id: 0,
-            positions: %{},
+            members: %{},
             member_num: 0,
             create_time: 0,
             password: "",
@@ -33,7 +33,7 @@ defmodule Lobby.Room do
 
   def to_common(data) do
     data = Map.from_struct(data)
-    data = struct(Room.Room, data)
+    data = %Pbm.Room.Room{}.__struct__ |> struct(data)
     data
   end
 
@@ -54,7 +54,16 @@ defmodule Lobby.Room do
     state
   end
 
-  def kick(~M{%M owner_id,positions,member_num} = state, [f_role_id, t_role_id]) do
+  def set_map(~M{%owner_id} = state, [role_id, map_id]) do
+    if role_id != owner_id do
+      throw("你不是房主")
+    end
+
+    %Pbm.Room.SetRoomMap2C{role_id: role_id, map_id: map_id} |> broad_cast()
+    ~M{state|map_id} |> sync() |> ok()
+  end
+
+  def kick(~M{%M owner_id,members,member_num} = state, [f_role_id, t_role_id]) do
     if f_role_id != owner_id do
       throw("你不是房主")
     end
@@ -63,15 +72,15 @@ defmodule Lobby.Room do
       throw("对方不在房间")
     end
 
-    positions =
-      for {k, v} <- positions, v != t_role_id, into: %{} do
+    members =
+      for {k, v} <- members, v != t_role_id, into: %{} do
         {k, v}
       end
 
     member_num = member_num - 1
     del_role_id(t_role_id)
     %Pbm.Room.Kick2C{role_id: t_role_id} |> broad_cast()
-    ~M{state|positions,member_num} |> sync() |> ok()
+    ~M{state|members,member_num} |> sync() |> ok()
   end
 
   def join(~M{%M room_id,password,member_num} = state, [role_id, tpassword]) do
@@ -82,29 +91,29 @@ defmodule Lobby.Room do
     state |> sync() |> ok()
   end
 
-  defp do_join(~M{%M positions, member_num} = state, role_id) do
+  defp do_join(~M{%M members, member_num} = state, role_id) do
     pos = find_free_pos(state)
-    positions = positions |> Map.put(pos, role_id)
+    members = members |> Map.put(pos, role_id)
     add_role_id(role_id)
     member_num = member_num + 1
-    ~M{state | member_num ,positions}
+    ~M{state | member_num ,members}
   end
 
   @doc """
   开始游戏回调
   """
-  def start_game(~M{%M room_id, owner_id, map_id, positions} = state, role_id) do
+  def start_game(~M{%M room_id, owner_id, map_id, members} = state, role_id) do
     if role_id != owner_id, do: throw("你不是房主")
-    Dsa.Svr.start_game([map_id, room_id, positions])
+    Dsa.Svr.start_game([map_id, room_id, members])
     state |> ok()
   end
 
-  def exit_room(~M{%M positions,member_num,owner_id} = state, role_id) do
+  def exit_room(~M{%M members,member_num,owner_id} = state, role_id) do
     if not :ordsets.is_element(role_id, role_ids()) do
       {:ok, state}
     else
-      positions =
-        for {k, v} <- positions, v != role_id, into: %{} do
+      members =
+        for {k, v} <- members, v != role_id, into: %{} do
           {k, v}
         end
 
@@ -123,15 +132,15 @@ defmodule Lobby.Room do
         self() |> Process.send(:shutdown, [:nosuspend])
       end
 
-      ~M{state| positions,member_num,owner_id} |> sync() |> ok()
+      ~M{state| members,member_num,owner_id} |> sync() |> ok()
     end
   end
 
   defp find_free_pos(state, poses \\ @positions)
   defp find_free_pos(_state, []), do: throw("没有空余的位置了")
 
-  defp find_free_pos(~M{%M positions} = state, [pos | t]) do
-    if positions[pos] == nil do
+  defp find_free_pos(~M{%M members} = state, [pos | t]) do
+    if members[pos] == nil do
       pos
     else
       find_free_pos(state, t)
@@ -159,12 +168,7 @@ defmodule Lobby.Room do
     |> set_role_ids()
   end
 
-  defp sync(~M{%M room_id, owner_id,status,member_num, map_id, positions,create_time} = state) do
-    members =
-      for {k, v} <- positions, not is_nil(v) do
-        %Pbm.Room.Member{role_id: v, position: k}
-      end
-
+  defp sync(~M{%M room_id, owner_id,status,member_num, map_id, members,create_time} = state) do
     room = ~M{%Pbm.Room.Room  room_id,owner_id,status,map_id,members,member_num,create_time}
     ~M{%Pbm.Room.Update2C room} |> broad_cast()
     state
