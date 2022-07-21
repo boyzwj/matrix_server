@@ -54,12 +54,6 @@ defmodule PBClass do
       content(Tool.Pbid.proto_ids("./proto")),
       [:write]
     )
-
-    File.write!(
-      "#{:code.priv_dir(:matrix_server)}/static/pbclass/dsa/PB.cs",
-      content(Tool.Pbid.proto_ids("./proto/dsa")),
-      [:write]
-    )
   end
 
   def content(ids) do

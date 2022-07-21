@@ -61,8 +61,6 @@ defmodule Api.Ctl do
     text = """
     # GAME协议定义
     ## [download](/static/pbclass/game/PB.cs)
-    # DSA协议定义
-    ## [download](/static/pbclass/dsa/PB.cs)
     """
 
     conn |> send_markdown(text)

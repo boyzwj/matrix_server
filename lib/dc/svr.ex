@@ -1,4 +1,4 @@
-defmodule Lobby.Dsa do
+defmodule Dc.Svr do
   use GenServer
   use Common
 
@@ -46,6 +46,11 @@ defmodule Lobby.Dsa do
     {:noreply, state, @timeout}
   end
 
+  def handle_info({:msg, msg}, state) do
+    state = Dc.Handler.h(state, msg)
+    {:noreply, state}
+  end
+
   defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
     state |> decode_body(data) |> decode(left)
   end
@@ -53,6 +58,8 @@ defmodule Lobby.Dsa do
   defp decode(state, recv_buffer), do: ~M{state | recv_buffer}
 
   defp decode_body(state, data) do
+    msg = Dc.Pb.decode!(data)
+    Process.send(self(), {:msg, msg}, [:nosuspend])
     state
   end
 end

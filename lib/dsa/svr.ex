@@ -30,12 +30,13 @@ defmodule Dsa.Svr do
   @impl true
   def handle_info(:secondloop, %Dsa{} = state) do
     now = Util.unixtime()
+    Process.send_after(self(), :secondloop, @loop_interval)
     state = ~M{state|now} |> Dsa.secondloop()
     {:noreply, state}
   end
 
   def handle_info({:udp, _socket, _ip, _port, data}, state) do
-    msg = Dsa.Pb.decode!(data)
+    msg = PB.decode!(data)
     state = Dsa.handle(state, msg)
     {:noreply, state}
   end

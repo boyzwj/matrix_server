@@ -1,0 +1,6 @@
+syntax = "proto3";
+  package dc;
+
+  message HeartBeat2S {
+    uint32 timestamp = 1;
+  }

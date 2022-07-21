@@ -2,11 +2,24 @@ defmodule Dsa do
   use Common
   @port_range [30_001, 40_000]
 
-  defstruct socket: nil, resources: nil, workers: %{}, now: nil
+  defstruct id: nil,
+            dc_port: nil,
+            dc_host: nil,
+            ds_socket: nil,
+            dc_socket: nil,
+            resources: nil,
+            workers: %{},
+            now: nil,
+            status: nil
+
+  @status_init 0
+  @status_online 1
+  @status_offline 2
 
   def init() do
     [min, max] = @port_range
-    host = "192.168.15.101"
+
+    host = Systemip.private_ipv4() |> Tuple.to_list() |> Enum.join(".")
 
     resources =
       :lists.seq(min, max, 2)
@@ -15,20 +28,57 @@ defmodule Dsa do
       end)
 
     opts = [inet_backend: :inet, active: true] ++ [:binary]
-    {:ok, socket} = :gen_udp.open(20081, opts)
-    %Dsa{socket: socket, resources: resources, now: Util.unixtime()}
+
+    {:ok, ds_socket} = :gen_udp.open(20081, opts)
+
+    dc_host = Application.get_env(:matrix_server, :dc_host, '127.0.0.1')
+    dc_port = Application.get_env(:matrix_server, :dc_port, 20001)
+
+    %Dsa{
+      id: FastGlobal.get(:block_id),
+      ds_socket: ds_socket,
+      resources: resources,
+      now: Util.unixtime(),
+      dc_host: dc_host,
+      dc_port: dc_port,
+      status: @status_init
+    }
   end
 
-  def secondloop(state) do
+  def secondloop(~M{%Dsa id,status,dc_host,dc_port} = state) when status == @status_init do
+    with {:ok, dc_socket} <- :gen_tcp.connect(dc_host, dc_port, [:binary, active: true]) do
+      Logger.debug("connected to dsa center")
+      status = @status_online
+      ~M{state| status,dc_socket}
+    else
+      err ->
+        Logger.debug("dsa #{id} connect error #{inspect(err)}")
+        state
+    end
+  end
+
+  def secondloop(~M{%Dsa status} = state) when status == @status_online do
+    state
+    |> send2dc(%Dc.HeartBeat2S{timestamp: Util.unixtime()})
+  end
+
+  def secondloop(~M{%Dsa status} = state) do
     state
   end
 
-  def start_game(~M{%Dsa workers,socket} = state, [map_id, room_id, positions] = args) do
+  defp send2dc(~M{%Dsa dc_socket} = state, msg) do
+    data = Dc.Pb.encode!(msg)
+    len = IO.iodata_length(data)
+    :ok = :gen_tcp.send(dc_socket, [<<len::16-little>> | data])
+    state
+  end
+
+  def start_game(~M{%Dsa workers,ds_socket} = state, [map_id, room_id, positions] = args) do
     Logger.info("start game, args: #{inspect(args)}")
 
     with {:ok, state, {host, port}} <- get_resource(state) do
       battle_id = GID.get_battle_id()
-      args = [battle_id, socket, room_id, map_id, positions, host, port]
+      args = [battle_id, ds_socket, room_id, map_id, positions, host, port]
       {:ok, worker_pid} = DynamicSupervisor.start_child(Dsa.Worker.Sup, {Dsa.Worker, args})
       now = Util.unixtime()
       workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now})

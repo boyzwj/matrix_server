@@ -38,7 +38,8 @@ defmodule NodeConfig do
       },
       {Role.Sup, []},
       {Redis.Manager, []},
-      {Lobby.Sup, []}
+      {Lobby.Sup, []},
+      {Dc.Sup, []}
     ]
   end
 
@@ -86,7 +87,8 @@ defmodule NodeConfig do
       {Lobby.Sup, []},
       {Dsa.Sup, []},
       {Api.Sup, []},
-      {GateWay.ListenerSup, []}
+      {GateWay.ListenerSup, []},
+      {Dc.Sup, []}
     ]
   end
 

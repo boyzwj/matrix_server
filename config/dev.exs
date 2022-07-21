@@ -35,6 +35,6 @@ config :matrix_server,
   ]
 
 config :exsync,
-  addition_dirs: ["/proto"],
+  addition_dirs: ["/proto", "/priv/proto"],
   extensions: [".ex", ".proto"],
   reload_callback: {PBClass, :create, []}

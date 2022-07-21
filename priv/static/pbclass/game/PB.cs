@@ -11,6 +11,14 @@ namespace Script.Network
         public const ushort PbmRoleOtherInfo2S = 45068;
         public const ushort PbmRoleInfo2C = 24773;
         public const ushort PbmRoleInfo2S = 53968;
+        public const ushort PbmDsaPlayerQuit2S = 54870;
+        public const ushort PbmDsaPlayerState2S = 16081;
+        public const ushort PbmDsaHeartbeat2S = 25101;
+        public const ushort PbmDsaRoleReady2S = 56216;
+        public const ushort PbmDsaRoleInfo2C = 2538;
+        public const ushort PbmDsaBattleInfo2C = 46785;
+        public const ushort PbmDsaBattleInfo2S = 18274;
+        public const ushort PbmDsaStart2S = 38063;
         public const ushort PbmRoomStartGame2C = 37626;
         public const ushort PbmRoomStartGame2S = 57425;
         public const ushort PbmRoomExit2C = 54014;
@@ -62,6 +70,14 @@ namespace Script.Network
             {typeof(Pbm.Role.OtherInfo2S), PbmRoleOtherInfo2S},
             {typeof(Pbm.Role.Info2C), PbmRoleInfo2C},
             {typeof(Pbm.Role.Info2S), PbmRoleInfo2S},
+            {typeof(Pbm.Dsa.PlayerQuit2S), PbmDsaPlayerQuit2S},
+            {typeof(Pbm.Dsa.PlayerState2S), PbmDsaPlayerState2S},
+            {typeof(Pbm.Dsa.Heartbeat2S), PbmDsaHeartbeat2S},
+            {typeof(Pbm.Dsa.RoleReady2S), PbmDsaRoleReady2S},
+            {typeof(Pbm.Dsa.RoleInfo2C), PbmDsaRoleInfo2C},
+            {typeof(Pbm.Dsa.BattleInfo2C), PbmDsaBattleInfo2C},
+            {typeof(Pbm.Dsa.BattleInfo2S), PbmDsaBattleInfo2S},
+            {typeof(Pbm.Dsa.Start2S), PbmDsaStart2S},
             {typeof(Pbm.Room.StartGame2C), PbmRoomStartGame2C},
             {typeof(Pbm.Room.StartGame2S), PbmRoomStartGame2S},
             {typeof(Pbm.Room.Exit2C), PbmRoomExit2C},
@@ -114,6 +130,14 @@ namespace Script.Network
             {PbmRoleOtherInfo2S,  Pbm.Role.OtherInfo2S.Parser},
             {PbmRoleInfo2C,  Pbm.Role.Info2C.Parser},
             {PbmRoleInfo2S,  Pbm.Role.Info2S.Parser},
+            {PbmDsaPlayerQuit2S,  Pbm.Dsa.PlayerQuit2S.Parser},
+            {PbmDsaPlayerState2S,  Pbm.Dsa.PlayerState2S.Parser},
+            {PbmDsaHeartbeat2S,  Pbm.Dsa.Heartbeat2S.Parser},
+            {PbmDsaRoleReady2S,  Pbm.Dsa.RoleReady2S.Parser},
+            {PbmDsaRoleInfo2C,  Pbm.Dsa.RoleInfo2C.Parser},
+            {PbmDsaBattleInfo2C,  Pbm.Dsa.BattleInfo2C.Parser},
+            {PbmDsaBattleInfo2S,  Pbm.Dsa.BattleInfo2S.Parser},
+            {PbmDsaStart2S,  Pbm.Dsa.Start2S.Parser},
             {PbmRoomStartGame2C,  Pbm.Room.StartGame2C.Parser},
             {PbmRoomStartGame2S,  Pbm.Room.StartGame2S.Parser},
             {PbmRoomExit2C,  Pbm.Room.Exit2C.Parser},
