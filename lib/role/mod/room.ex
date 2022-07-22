@@ -71,8 +71,8 @@ defmodule Role.Mod.Room do
   end
 
   # 踢人
-  def h(~M{%M room_id}, ~M{%Pbm.Room.Kick2S role_id}) do
-    with :ok <- Lobby.Room.Svr.kick(room_id, [role_id(), role_id]) do
+  def h(~M{%M room_id}, ~M{%Pbm.Room.Kick2S role_id: t_role_id}) do
+    with :ok <- Lobby.Room.Svr.kick(room_id, [role_id(), t_role_id]) do
       :ok
     else
       {:error, error} -> throw(error)
@@ -82,6 +82,14 @@ defmodule Role.Mod.Room do
   # 换位
   def h(~M{%M room_id}, ~M{%Pbm.Room.ChangePos2S position}) do
     with :ok <- Lobby.Room.Svr.change_pos(room_id, [role_id(), position]) do
+      :ok
+    else
+      {:error, error} -> throw(error)
+    end
+  end
+
+  def h(~M{%M room_id}, ~M{%Pbm.Room.ChangePosReply2S role_id: f_role_id,accept}) do
+    with :ok <- Lobby.Room.Svr.change_pos_reply(room_id, [role_id(), f_role_id, accept]) do
       :ok
     else
       {:error, error} -> throw(error)
@@ -115,4 +123,16 @@ defmodule Role.Mod.Room do
     Lobby.Room.Svr.exit_room(room_id, role_id())
     ~M{state | room_id:  0} |> set_data()
   end
+
+
+  def kicked_from_room(f_role_id) do
+    get_data() |> kicked_from_room(f_role_id)
+  end
+
+  def kicked_from_room(~M{%M  map_id} = state,_f_role_id)  do
+    room = %Pbm.Room.Room{room_id: 0,map_id: map_id}
+    %Pbm.Room.Update2C{room: room}  |> sd
+    ~M{state | room_id:  0} |> set_data()
+  end
+
 end

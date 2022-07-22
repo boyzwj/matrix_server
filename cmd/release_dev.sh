@@ -9,4 +9,5 @@ echo '>>>>  upload finish  <<<<'
 echo 'begin restart'
 # sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server rpc \"Reloader.update_all()\""
 sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server restart"
+# sshpass -p "1" ssh $REMOTE_HOST "RELEASE_NODE=develop /release/matrix_server/bin/matrix_server start"
 echo '>>>>  restart finish <<<<'

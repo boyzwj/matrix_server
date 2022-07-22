@@ -1,4 +1,4 @@
-defmodule Dc.Svr do
+defmodule Dc.Client do
   use GenServer
   use Common
 
@@ -16,6 +16,11 @@ defmodule Dc.Svr do
 
   @status_unauthorized 0
   @status_authorized 1
+
+  def send2dsa(pid, msg) do
+    data = Dc.Pb.encode!(msg)
+    GenServer.cast(pid, {:send2dsa, data})
+  end
 
   @impl true
   def start_link(ref, transport, opts) do
@@ -40,15 +45,17 @@ defmodule Dc.Svr do
   end
 
   @impl true
+  def handle_cast({:send2dsa, data}, ~M{socket} = state) do
+    len = IO.iodata_length(data)
+    :ok = :gen_tcp.send(socket, [<<len::16-little>> | data])
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_info({:tcp, socket, data}, ~M{socket,transport,recv_buffer} = state) do
     state = state |> decode(recv_buffer <> data)
     :ok = transport.setopts(socket, active: :once)
     {:noreply, state, @timeout}
-  end
-
-  def handle_info({:msg, msg}, state) do
-    state = Dc.Handler.h(state, msg)
-    {:noreply, state}
   end
 
   defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
@@ -59,7 +66,7 @@ defmodule Dc.Svr do
 
   defp decode_body(state, data) do
     msg = Dc.Pb.decode!(data)
-    Process.send(self(), {:msg, msg}, [:nosuspend])
+    Dc.Manager.cast({:msg, self(), msg})
     state
   end
 end

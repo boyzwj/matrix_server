@@ -54,11 +54,13 @@ defmodule NodeConfig do
     ]
   end
 
-  def services("robot", _block_id) do
+  def services("robot", block_id) do
+    FastGlobal.put(:block_id, block_id)
     [Robot.Sup, Robot.Manager]
   end
 
-  def services("dsa", _block_id) do
+  def services("dsa", block_id) do
+    FastGlobal.put(:block_id, block_id)
     [{Dsa.Sup, []}]
   end
 

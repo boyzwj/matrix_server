@@ -14,7 +14,8 @@ defmodule Lobby.Room do
 
   @loop_interval 10_000
   @idle_time 3_600
-  @positions [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]
+
+  @positions [0, 5, 1, 6, 2, 7, 3, 8, 4, 9, 10, 11, 12]
 
   def init([room_id, owner_id, map_id, password]) do
     Logger.debug("Room.Svr room_id: [#{room_id}] owenr_id: [#{owner_id}]  start")
@@ -73,14 +74,58 @@ defmodule Lobby.Room do
     end
 
     members =
-      for {k, v} <- members, v != t_role_id, into: %{} do
+      for {k, v} <- members, into: %{} do
+        (v == t_role_id && nil) || v
         {k, v}
       end
 
     member_num = member_num - 1
     del_role_id(t_role_id)
     %Pbm.Room.Kick2C{role_id: t_role_id} |> broad_cast()
+    Role.Svr.cast(t_role_id, {:kicked_from_room, f_role_id})
     ~M{state|members,member_num} |> sync() |> ok()
+  end
+
+  def change_pos(~M{%M members} = state, [role_id, position]) do
+    if position not in @positions do
+      throw("不是合法的位置")
+    end
+
+    with nil <- members[position] do
+      members =
+        members |> Map.filter(fn {_key, val} -> val != role_id end) |> Map.put(position, role_id)
+
+      %Pbm.Room.ChangePosResult2C{members: members} |> broad_cast()
+      ~M{state|members} |> sync |> ok()
+    else
+      t_role_id ->
+        %Pbm.Room.ChangePosReq2C{role_id: role_id} |> Role.Misc.send_to(t_role_id)
+        Process.put({:change_pos_req, role_id}, {t_role_id, Util.unixtime()})
+        state |> ok()
+    end
+  end
+
+  def change_pos_reply(~M{%M members} = state, [role_id, f_role_id, accept]) do
+    with {^role_id, _timestamp} <- Process.get({:change_pos_req, f_role_id}) do
+      Process.delete({:change_pos_req, f_role_id})
+
+      if accept do
+        members =
+          for {k, v} <- members, into: %{} do
+            v = (v == role_id && f_role_id) || (v == f_role_id && role_id) || v
+            {k, v}
+          end
+
+        %Pbm.Room.ChangePosResult2C{members: members} |> broad_cast()
+        ~M{state|members} |> sync |> ok()
+      else
+        %Pbm.Room.ChangePosRefuse2C{role_id: role_id} |> Role.Misc.send_to(f_role_id)
+        state |> ok()
+      end
+    else
+      _ ->
+        state |> ok()
+    end
   end
 
   def join(~M{%M room_id,password,member_num} = state, [role_id, tpassword]) do

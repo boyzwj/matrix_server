@@ -199,9 +199,9 @@ defmodule Dsa.Worker do
         camp_id =
           cond do
             # T
-            pos in [1, 2, 3, 4, 5] -> 1
+            pos in [0, 1, 2, 3, 4] -> 1
             # CT
-            pos in [6, 7, 8, 9, 10] -> 2
+            pos in [5, 6, 7, 8, 9] -> 2
             # Observer
             true -> 8
           end
@@ -209,7 +209,7 @@ defmodule Dsa.Worker do
         base_info = %Pbm.Dsa.RoleBaseInfo{
           uid: id,
           name: role_name,
-          group_id: 1,
+          group_id: camp_id,
           camp_id: camp_id,
           avatar: avatar_id,
           level: level

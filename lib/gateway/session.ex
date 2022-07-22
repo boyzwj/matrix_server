@@ -155,7 +155,7 @@ defmodule GateWay.Session do
       ~M{state| status,role_id,crypto_key}
     else
       _ ->
-        Logger.debug("authorize error")
+        Logger.error("authorize error")
         state
     end
   end

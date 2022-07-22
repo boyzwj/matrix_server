@@ -41,8 +41,17 @@ defmodule Dsa.Svr do
     {:noreply, state}
   end
 
-  @impl true
+  def handle_info({:tcp, _socket, data}, ~M{recv_buffer} = state) do
+    state = state |> decode(recv_buffer <> data)
+    {:noreply, state}
+  end
 
+  def handle_info({:tcp_closed, socket}, state) do
+    state = Dsa.tcp_closed(state, socket)
+    {:noreply, state}
+  end
+
+  @impl true
   def handle_call({func, arg}, _from, %Dsa{} = state) do
     try do
       {reply, state} = apply(Dsa, func, [state, arg])
@@ -75,5 +84,17 @@ defmodule Dsa.Svr do
   def handle_cast(msg, state) do
     Logger.warn("unhandle cast : #{msg}")
     {:noreply, state}
+  end
+
+  defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
+    state |> decode_body(data) |> decode(left)
+  end
+
+  defp decode(state, recv_buffer), do: ~M{state | recv_buffer}
+
+  defp decode_body(state, data) do
+    msg = Dc.Pb.decode!(data)
+    GenServer.cast(self(), {:dc_msg, msg})
+    state
   end
 end

@@ -2,5 +2,12 @@ syntax = "proto3";
   package dc;
 
   message HeartBeat2S {
-    uint32 timestamp = 1;
+    uint32 id = 1;
+    uint32 resources_left = 2;
+  }
+
+  message StartGame2C{
+    uint32 room_id = 1;
+    uint32 map_id = 2;
+    map<uint32,uint64> members =3;
   }

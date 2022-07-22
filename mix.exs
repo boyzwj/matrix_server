@@ -45,7 +45,8 @@ defmodule Server.MixProject do
       {:manifold, "~> 1.4"},
       {:plug_cowboy, "~> 2.5"},
       {:earmark, "~> 1.4"},
-      {:memoize, "~> 1.4"}
+      {:memoize, "~> 1.4"},
+      {:pockets, "~> 1.2"}
     ]
   end
 

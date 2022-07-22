@@ -10,11 +10,27 @@ defmodule Dsa do
             resources: nil,
             workers: %{},
             now: nil,
-            status: nil
+            status: nil,
+            recv_buffer: <<>>
 
   @status_init 0
   @status_online 1
   @status_offline 2
+
+  def get_battle_id() do
+    block_id = FastGlobal.get(:block_id)
+    id = Pockets.incr(:node_id, :battle_id, 1) |> Pockets.get(:battle_id)
+    block_id * 10_000_000 + id
+  end
+
+  defp init_table(local_storage_path, name) do
+    with {:ok, _} <- Pockets.new(name, "#{local_storage_path}/#{name}.dets") do
+      Logger.info("create new local storage")
+    else
+      {:error, "File already exists"} ->
+        Pockets.open(:node_id, "#{local_storage_path}/#{name}.dets")
+    end
+  end
 
   def init() do
     [min, max] = @port_range
@@ -29,10 +45,18 @@ defmodule Dsa do
 
     opts = [inet_backend: :inet, active: true] ++ [:binary]
 
-    {:ok, ds_socket} = :gen_udp.open(20081, opts)
+    dsa_port = String.to_integer(System.get_env("DSA_PORT") || "20081")
+
+    {:ok, ds_socket} = :gen_udp.open(dsa_port, opts)
 
     dc_host = Application.get_env(:matrix_server, :dc_host, '127.0.0.1')
     dc_port = Application.get_env(:matrix_server, :dc_port, 20001)
+
+    local_storage_path = "#{System.user_home!()}/storage/#{node()}"
+
+    with :ok <- File.mkdir_p(local_storage_path) do
+      init_table(local_storage_path, :node_id)
+    end
 
     %Dsa{
       id: FastGlobal.get(:block_id),
@@ -57,12 +81,25 @@ defmodule Dsa do
     end
   end
 
-  def secondloop(~M{%Dsa status} = state) when status == @status_online do
+  def secondloop(~M{%Dsa status,id,resources} = state) when status == @status_online do
+    resources_left = LimitedQueue.size(resources)
+
     state
-    |> send2dc(%Dc.HeartBeat2S{timestamp: Util.unixtime()})
+    |> send2dc(%Dc.HeartBeat2S{id: id, resources_left: resources_left})
   end
 
-  def secondloop(~M{%Dsa status} = state) do
+  def secondloop(~M{%Dsa status} = state) when status == @status_offline do
+    status = @status_init
+    ~M{state| status}
+  end
+
+  def tcp_closed(state, _socket) do
+    status = @status_offline
+    ~M{state|status}
+  end
+
+  def dc_msg(state, msg) do
+    # Logger.warning("receive dc msg #{inspect(msg)}")
     state
   end
 
@@ -77,11 +114,11 @@ defmodule Dsa do
     Logger.info("start game, args: #{inspect(args)}")
 
     with {:ok, state, {host, port}} <- get_resource(state) do
-      battle_id = GID.get_battle_id()
+      battle_id = get_battle_id()
       args = [battle_id, ds_socket, room_id, map_id, positions, host, port]
       {:ok, worker_pid} = DynamicSupervisor.start_child(Dsa.Worker.Sup, {Dsa.Worker, args})
       now = Util.unixtime()
-      workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now})
+      workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now,host, port})
       {:ok, ~M{state| workers}}
     else
       {:error, error} ->

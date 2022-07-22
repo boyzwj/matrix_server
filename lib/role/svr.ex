@@ -167,6 +167,11 @@ defmodule Role.Svr do
     {:noreply, ~M{%Role.Svr state|status}}
   end
 
+  def handle_cast({:kicked_from_room, f_role_id}, state) do
+    Role.Mod.Room.kicked_from_room(f_role_id)
+    {:noreply, state}
+  end
+
   @impl true
   def handle_call({:apply, mod, f, args}, _from, state) do
     reply = :erlang.apply(mod, f, args)

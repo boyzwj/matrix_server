@@ -7,10 +7,11 @@ defmodule Dc.Sup do
 
   @impl true
   def init(_opts) do
-    port = String.to_integer(System.get_env("DSA_PORT") || "20001")
+    port = String.to_integer(System.get_env("DC_PORT") || "20001")
 
     children = [
-      {Dc.Listener, port: port}
+      {Dc.Listener, port: port},
+      {Dc.Manager, []}
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
