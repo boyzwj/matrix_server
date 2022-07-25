@@ -72,4 +72,19 @@ defmodule Dc.Manager do
   def code_change(_old_vsn, state, _extra) do
     {:ok, state}
   end
+
+  def test_battle() do
+    start_game([
+      10_051_068,
+      1,
+      %{
+        1 => 100_000_001,
+        2 => 100_000_002,
+        3 => 100_000_003,
+        4 => nil,
+        6 => 100_000_006,
+        7 => 100_000_007
+      }
+    ])
+  end
 end

@@ -16,6 +16,7 @@ defmodule Dc do
     with {resources_left, dsa_id} when resources_left > 0 <- choose_dsa(state),
          {from, _, _} <- dsa_infos[dsa_id] do
       room_list = Map.put(room_list, room_id, dsa_id)
+      members = Map.filter(members, fn {_key, val} -> is_number(val) end)
 
       Dc.Client.send2dsa(from, %Dc.StartGame2C{room_id: room_id, map_id: map_id, members: members})
 
@@ -43,7 +44,6 @@ defmodule Dc do
 
     dsa_infos = dsa_infos |> Map.put(id, {from, now, resources_left})
     # Logger.debug("current dsa_list #{inspect(SortedSet.to_list(sorted_dsa))}")
-    Dc.Client.send2dsa(from, msg)
     ~M{state | dsa_infos}
   end
 

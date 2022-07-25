@@ -11,6 +11,7 @@ namespace Script.Network
         public const ushort PbmRoleOtherInfo2S = 45068;
         public const ushort PbmRoleInfo2C = 24773;
         public const ushort PbmRoleInfo2S = 53968;
+        public const ushort PbmBattleBattleResult2C = 37494;
         public const ushort PbmDsaGameStatis2S = 22319;
         public const ushort PbmDsaPlayerQuit2S = 54870;
         public const ushort PbmDsaPlayerState2S = 16081;
@@ -71,6 +72,7 @@ namespace Script.Network
             {typeof(Pbm.Role.OtherInfo2S), PbmRoleOtherInfo2S},
             {typeof(Pbm.Role.Info2C), PbmRoleInfo2C},
             {typeof(Pbm.Role.Info2S), PbmRoleInfo2S},
+            {typeof(Pbm.Battle.BattleResult2C), PbmBattleBattleResult2C},
             {typeof(Pbm.Dsa.GameStatis2S), PbmDsaGameStatis2S},
             {typeof(Pbm.Dsa.PlayerQuit2S), PbmDsaPlayerQuit2S},
             {typeof(Pbm.Dsa.PlayerState2S), PbmDsaPlayerState2S},
@@ -132,6 +134,7 @@ namespace Script.Network
             {PbmRoleOtherInfo2S,  Pbm.Role.OtherInfo2S.Parser},
             {PbmRoleInfo2C,  Pbm.Role.Info2C.Parser},
             {PbmRoleInfo2S,  Pbm.Role.Info2S.Parser},
+            {PbmBattleBattleResult2C,  Pbm.Battle.BattleResult2C.Parser},
             {PbmDsaGameStatis2S,  Pbm.Dsa.GameStatis2S.Parser},
             {PbmDsaPlayerQuit2S,  Pbm.Dsa.PlayerQuit2S.Parser},
             {PbmDsaPlayerState2S,  Pbm.Dsa.PlayerState2S.Parser},

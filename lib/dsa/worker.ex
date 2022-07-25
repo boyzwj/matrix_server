@@ -169,13 +169,19 @@ defmodule Dsa.Worker do
 
   def handle(
         state,
-        ~M{%Pbm.Dsa.Heartbeat2S battle_id,pid,defender_score,attacker_score,online_players} = msg
+        ~M{%Pbm.Dsa.Heartbeat2S battle_id, pid, defender_score, attacker_score, online_players} =
+          msg
       ) do
     Logger.warn("receive #{inspect(msg)}")
     state
   end
 
   def handle(state, ~M{%Pbm.Dsa.PlayerQuit2S battle_id, player_id,reason} = msg) do
+    Logger.warn("receive #{inspect(msg)}")
+    state
+  end
+
+  def handle(state, ~M{%Pbm.Dsa.GameStatis2S battle_result} = msg) do
     Logger.warn("receive #{inspect(msg)}")
     state
   end

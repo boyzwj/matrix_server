@@ -98,8 +98,23 @@ defmodule Dsa do
     ~M{state|status}
   end
 
+  def dc_msg(~M{%Dsa workers,ds_socket} = state, ~M{%Dc.StartGame2C room_id,map_id,members}) do
+    with {:ok, state, {host, port}} <- get_resource(state) do
+      battle_id = get_battle_id()
+      args = [battle_id, ds_socket, room_id, map_id, members, host, port]
+      {:ok, worker_pid} = DynamicSupervisor.start_child(Dsa.Worker.Sup, {Dsa.Worker, args})
+      now = Util.unixtime()
+      workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now,host, port})
+      ~M{state| workers}
+    else
+      _ ->
+        Logger.warning("Dsa has no resource ...")
+        state
+    end
+  end
+
   def dc_msg(state, msg) do
-    # Logger.warning("receive dc msg #{inspect(msg)}")
+    Logger.warning("receive dc msg #{inspect(msg)}")
     state
   end
 
@@ -166,20 +181,5 @@ defmodule Dsa do
   defp recycle_resource(~M{%Dsa resources} = state, res) do
     resources = LimitedQueue.push(resources, res)
     ~M{state| resources}
-  end
-
-  def test_battle() do
-    Dsa.Svr.start_game([
-      10_051_068,
-      1,
-      %{
-        1 => 100_000_001,
-        2 => 100_000_002,
-        3 => 100_000_003,
-        4 => nil,
-        6 => 100_000_006,
-        7 => 100_000_007
-      }
-    ])
   end
 end
