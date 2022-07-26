@@ -4,6 +4,7 @@ defmodule Dsa.Worker do
             room_id: nil,
             map_id: nil,
             members: %{},
+            infos: %{},
             ready_states: %{},
             host: nil,
             out_port: nil,
@@ -49,13 +50,13 @@ defmodule Dsa.Worker do
   end
 
   @impl true
-  def init([battle_id, socket, room_id, map_id, members, host, out_port]) do
+  def init([battle_id, socket, room_id, map_id, members, infos, host, out_port, dsa_port]) do
     game_mapId = map_id
     direct_test = 0
     game_battleid = battle_id
     net_outPort = out_port
     net_inPort = out_port + 1
-    net_dsaPort = 20081
+    net_dsaPort = dsa_port
 
     args =
       for {k, v} <- ~m{game_mapId,direct_test,game_battleid,net_outPort,net_inPort,net_dsaPort} do
@@ -85,14 +86,14 @@ defmodule Dsa.Worker do
       end
 
     state =
-      ~M{%M battle_id,socket,room_id, map_id, members,ready_states, host, out_port,in_port: net_inPort,pid, ref}
+      ~M{%M battle_id,socket,room_id, map_id, members,infos,ready_states, host, out_port,in_port: net_inPort,pid, ref}
 
     {:ok, state}
   end
 
   @impl true
-  def handle_info({:DOWN, ref, :process, _pid, _reason}, ~M{%M ref,battle_id} = state) do
-    Dsa.Svr.end_game([battle_id])
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, ~M{%M ref,battle_id,room_id} = state) do
+    Dsa.Svr.end_game([battle_id, room_id])
     {:stop, :normal, state}
   end
 
@@ -176,13 +177,15 @@ defmodule Dsa.Worker do
     state
   end
 
-  def handle(state, ~M{%Pbm.Dsa.PlayerQuit2S battle_id, player_id,reason} = msg) do
+  def handle(~M{%M } = state, ~M{%Pbm.Dsa.PlayerQuit2S battle_id, player_id,reason} = msg) do
     Logger.warn("receive #{inspect(msg)}")
     state
   end
 
-  def handle(state, ~M{%Pbm.Dsa.GameStatis2S battle_result} = msg) do
-    Logger.warn("receive #{inspect(msg)}")
+  def handle(~M{%M room_id} = state, ~M{%Pbm.Dsa.GameStatis2S } = msg) do
+    data = PB.encode!(msg) |> IO.iodata_to_binary()
+    msg = %Dc.RoomMsg2S{room_id: room_id, data: data}
+    Dsa.Svr.send2dc(msg)
     state
   end
 
@@ -196,11 +199,11 @@ defmodule Dsa.Worker do
     state
   end
 
-  defp send_role_info(~M{%M members} = state) do
+  defp send_role_info(~M{%M members,infos} = state) do
     members
     |> Enum.each(fn {pos, id} ->
       if id != nil do
-        {_, ~M{%Pbm.Common.RoleInfo role_name,level,avatar_id}} = Role.Mod.Role.role_info(id)
+        ~M{%Dc.RoleInfo role_name,level,avatar_id} = infos[id]
 
         camp_id =
           cond do
@@ -240,10 +243,12 @@ defmodule Dsa.Worker do
     if ready_states |> Map.values() |> Enum.all?() do
       Logger.debug("broad cast to room: #{room_id}")
 
-      Lobby.Room.Svr.broad_cast(
-        room_id,
-        ~M{%Pbm.Room.StartGame2C battle_id, host, port: out_port,map_id}
-      )
+      data =
+        PB.encode!(~M{%Pbm.Room.StartGame2C battle_id, host, port: out_port,map_id})
+        |> IO.iodata_to_binary()
+
+      msg = %Dc.RoomMsg2S{room_id: room_id, data: data}
+      Dsa.Svr.send2dc(msg)
     end
 
     state

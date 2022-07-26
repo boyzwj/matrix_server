@@ -58,6 +58,11 @@ defmodule Dc.Client do
     {:noreply, state, @timeout}
   end
 
+  def handle_info({:tcp_closed, _socket}, ~M{%Dc.Client dsa_id} = state) do
+    Dc.Manager.cast({:dsa_offline, dsa_id})
+    {:stop, :normal, state}
+  end
+
   defp decode(state, <<len::16-little, data::binary-size(len), left::binary>>) do
     state |> decode_body(data) |> decode(left)
   end
@@ -66,6 +71,15 @@ defmodule Dc.Client do
 
   defp decode_body(state, data) do
     msg = Dc.Pb.decode!(data)
+    handle_msg(state, msg)
+  end
+
+  defp handle_msg(state, ~M{%Dc.HeartBeat2S id} = msg) do
+    Dc.Manager.cast({:msg, self(), msg})
+    ~M{state | dsa_id: id}
+  end
+
+  defp handle_msg(state, msg) do
     Dc.Manager.cast({:msg, self(), msg})
     state
   end

@@ -31,7 +31,7 @@ defmodule Role do
     array =
       PB.modules()
       |> Enum.reduce([], fn mod, acc ->
-        if mod.dirty?() do
+        if function_exported?(mod, :dirty?, 0) && mod.dirty?() do
           data = mod.get_data() |> Map.from_struct() |> Jason.encode!()
           [mod, data | acc]
         else

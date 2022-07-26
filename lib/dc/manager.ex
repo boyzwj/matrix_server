@@ -49,6 +49,11 @@ defmodule Dc.Manager do
     {:noreply, state}
   end
 
+  def handle_cast({:dsa_offline, id}, state) do
+    state = Dc.dsa_offline(state, id)
+    {:noreply, state}
+  end
+
   def handle_cast(msg, state) do
     Logger.warn("unhandle cast : #{inspect(msg)}")
     {:noreply, state}

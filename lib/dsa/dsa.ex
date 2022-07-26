@@ -5,6 +5,7 @@ defmodule Dsa do
   defstruct id: nil,
             dc_port: nil,
             dc_host: nil,
+            dsa_port: nil,
             ds_socket: nil,
             dc_socket: nil,
             resources: nil,
@@ -60,6 +61,7 @@ defmodule Dsa do
 
     %Dsa{
       id: FastGlobal.get(:block_id),
+      dsa_port: dsa_port,
       ds_socket: ds_socket,
       resources: resources,
       now: Util.unixtime(),
@@ -98,13 +100,16 @@ defmodule Dsa do
     ~M{state|status}
   end
 
-  def dc_msg(~M{%Dsa workers,ds_socket} = state, ~M{%Dc.StartGame2C room_id,map_id,members}) do
-    with {:ok, state, {host, port}} <- get_resource(state) do
+  def dc_msg(
+        ~M{%Dsa workers,dsa_port,ds_socket} = state,
+        ~M{%Dc.StartGame2C room_id,map_id,members,infos}
+      ) do
+    with {:ok, state, {host, out_port}} <- get_resource(state) do
       battle_id = get_battle_id()
-      args = [battle_id, ds_socket, room_id, map_id, members, host, port]
+      args = [battle_id, ds_socket, room_id, map_id, members, infos, host, out_port, dsa_port]
       {:ok, worker_pid} = DynamicSupervisor.start_child(Dsa.Worker.Sup, {Dsa.Worker, args})
       now = Util.unixtime()
-      workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now,host, port})
+      workers = workers |> Map.put(battle_id, ~M{worker_pid, room_id, now,host, out_port})
       ~M{state| workers}
     else
       _ ->
@@ -118,7 +123,7 @@ defmodule Dsa do
     state
   end
 
-  defp send2dc(~M{%Dsa dc_socket} = state, msg) do
+  def send2dc(~M{%Dsa dc_socket} = state, msg) do
     data = Dc.Pb.encode!(msg)
     len = IO.iodata_length(data)
     :ok = :gen_tcp.send(dc_socket, [<<len::16-little>> | data])
@@ -141,8 +146,9 @@ defmodule Dsa do
     end
   end
 
-  def end_game(~M{%Dsa workers} = state, [battle_id]) do
+  def end_game(~M{%Dsa workers} = state, [battle_id, room_id]) do
     Logger.debug("game end battle_id : #{battle_id}")
+    send2dc(state, %Dc.BattleEnd2S{room_id: room_id})
 
     with ~M{host, port} <- Map.get(workers, battle_id) do
       state = recycle_resource(state, {host, port})

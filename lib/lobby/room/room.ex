@@ -149,7 +149,7 @@ defmodule Lobby.Room do
   """
   def start_game(~M{%M room_id, owner_id, map_id, members} = state, role_id) do
     if role_id != owner_id, do: throw("你不是房主")
-    Dsa.Svr.start_game([map_id, room_id, members])
+    Dc.Manager.start_game([map_id, room_id, members])
     state |> ok()
   end
 
@@ -179,6 +179,17 @@ defmodule Lobby.Room do
 
       ~M{state| members,member_num,owner_id} |> sync() |> ok()
     end
+  end
+
+  def ds_msg(state, ~M{%Pbm.Dsa.GameStatis2S battle_id, _battle_result} = msg) do
+    Logger.debug("room receive ds msg #{inspect(msg)}")
+    broad_cast(%Pbm.Battle.BattleResult2C{battle_id: battle_id})
+    {:ok, state}
+  end
+
+  def ds_msg(state, msg) do
+    broad_cast(msg)
+    {:ok, state}
   end
 
   defp find_free_pos(state, poses \\ @positions)
