@@ -141,8 +141,8 @@ defmodule Dsa.Worker do
     end
   end
 
-  def handle(~M{%M } = state, ~M{%Pbm.Dsa.BattleInfo2S battle_id} = msg) do
-    Logger.debug("receive #{inspect(msg)}")
+  def handle(~M{%M } = state, ~M{%Pbm.Dsa.BattleInfo2S battle_id} = _msg) do
+    # Logger.debug("receive #{inspect(msg)}")
 
     battle_info = %Pbm.Dsa.BattleInfo{
       auto_armor: true,
@@ -183,9 +183,12 @@ defmodule Dsa.Worker do
   end
 
   def handle(~M{%M room_id} = state, ~M{%Pbm.Dsa.GameStatis2S } = msg) do
-    data = PB.encode!(msg) |> IO.iodata_to_binary()
-    msg = %Dc.RoomMsg2S{room_id: room_id, data: data}
-    Dsa.Svr.send2dc(msg)
+    msg
+    |> PB.encode!()
+    |> IO.iodata_to_binary()
+    |> (&%Dc.RoomMsg2S{room_id: room_id, data: &1}).()
+    |> Dsa.Svr.send2dc()
+
     state
   end
 
@@ -215,24 +218,25 @@ defmodule Dsa.Worker do
             true -> 8
           end
 
-        base_info = %Pbm.Dsa.RoleBaseInfo{
-          uid: id,
-          name: role_name,
-          group_id: camp_id,
-          camp_id: camp_id,
-          avatar: avatar_id,
-          level: level
-        }
+        msg =
+          %Pbm.Dsa.RoleBaseInfo{
+            uid: id,
+            name: role_name,
+            group_id: camp_id,
+            camp_id: camp_id,
+            avatar: avatar_id,
+            level: level
+          }
+          |> (&%Pbm.Dsa.Role{
+                replace_uid: id,
+                ai_property_type: 1,
+                robot: 0,
+                robot_type: 0,
+                base_info: &1
+              }).()
+          |> (&%Pbm.Dsa.RoleInfo2C{role: &1}).()
 
-        role = %Pbm.Dsa.Role{
-          replace_uid: id,
-          ai_property_type: 1,
-          robot: 0,
-          robot_type: 0,
-          base_info: base_info
-        }
-
-        send2ds(state, %Pbm.Dsa.RoleInfo2C{role: role})
+        send2ds(state, msg)
       end
     end)
 
@@ -241,14 +245,11 @@ defmodule Dsa.Worker do
 
   defp check_start(~M{%M room_id,battle_id,out_port,host,map_id,ready_states} = state) do
     if ready_states |> Map.values() |> Enum.all?() do
-      Logger.debug("broad cast to room: #{room_id}")
-
-      data =
-        PB.encode!(~M{%Pbm.Room.StartGame2C battle_id, host, port: out_port,map_id})
-        |> IO.iodata_to_binary()
-
-      msg = %Dc.RoomMsg2S{room_id: room_id, data: data}
-      Dsa.Svr.send2dc(msg)
+      ~M{%Pbm.Room.StartGame2C battle_id, host, port: out_port,map_id}
+      |> PB.encode!()
+      |> IO.iodata_to_binary()
+      |> (&%Dc.RoomMsg2S{room_id: room_id, data: &1}).()
+      |> Dsa.Svr.send2dc()
     end
 
     state
